@@ -370,6 +370,7 @@ package Ocarina.Backends.Properties is
      (Thread_With_Call_Sequence,
       Thread_With_Compute_Entrypoint,
       Thread_With_Port_Compute_Entrypoint,
+      Thread_With_Behavior_Specification,
       Thread_Unknown);
 
    type Supported_POSIX_Scheduling_Policy is
@@ -496,7 +497,8 @@ package Ocarina.Backends.Properties is
       Subprogram_Esterel,
       Subprogram_Lua,
       Subprogram_Pure_Call_Sequence,
-      Subprogram_Hybrid_Ada_95);
+      Subprogram_Hybrid_Ada_95,
+      Subrogram_With_Behavior_Specification);
 
    function Get_Subprogram_Kind (S : Node_Id) return Supported_Subprogram_Kind;
    --  Return the kind of a subprogram depending on its internal

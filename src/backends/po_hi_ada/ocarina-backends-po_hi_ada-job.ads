@@ -2,11 +2,11 @@
 --                                                                          --
 --                           OCARINA COMPONENTS                             --
 --                                                                          --
---             O C A R I N A . A N A L Y Z E R . A A D L _ B A              --
+--       O C A R I N A . B A C K E N D S . P O _ H I _ A D A . J O B        --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                   Copyright (C) 2016-2019 ESA & ISAE.                    --
+--                     Copyright (C) 2019 ESA & ISAE.                       --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,33 +29,22 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package Ocarina.Analyzer.AADL_BA is
+--  This package contains routine to build the subtree relative to the
+--  <Node>_Job package that contains the mapping of periodic
+--  threads and shared data.
 
-   procedure Init;
+package Ocarina.Backends.PO_HI_Ada.Job is
 
-   procedure Reset;
+   package Package_Spec is
 
-   function Analyze_Model (Root : Node_Id) return Boolean;
-   --  Proceed to BA analysis
+      procedure Visit (E : Node_Id);
 
-   function Is_Complete
-     (BA_Root : Node_Id;
-      State   : Node_Id)
-     return Boolean;
+   end Package_Spec;
 
-   function Is_Initial
-     (BA_Root : Node_Id;
-      State   : Node_Id)
-     return Boolean;
+   package Package_Body is
 
-   function Is_Final
-     (BA_Root : Node_Id;
-      State   : Node_Id)
-      return Boolean;
+      procedure Visit (E : Node_Id);
 
-   function Find_BA_Variable
-     (Node             : Node_Id;
-      BA_Root          : Node_Id)
-      return Node_Id;
+   end Package_Body;
 
-end Ocarina.Analyzer.AADL_BA;
+end Ocarina.Backends.PO_HI_Ada.Job;

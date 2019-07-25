@@ -2,11 +2,11 @@
 --                                                                          --
 --                           OCARINA COMPONENTS                             --
 --                                                                          --
---             O C A R I N A . A N A L Y Z E R . A A D L _ B A              --
+--         O C A R I N A . B A C K E N D S . C _ C O M M O N . B A          --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                   Copyright (C) 2016-2019 ESA & ISAE.                    --
+--                     Copyright (C) 2019 ESA & ISAE.                       --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,33 +29,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package Ocarina.Analyzer.AADL_BA is
+package Ocarina.Backends.C_Common.BA is
 
-   procedure Init;
+   procedure Map_C_Behavior_Variables (S            : Node_Id;
+                                       Declarations : List_Id);
+   --  This function maps variables declared in the BA variables
+   --  section to variables in the corresponding genereted C-subprogram
+   --  having the same identifiers. It returns the declarations list of
+   --  the generated C-subprogram.
 
-   procedure Reset;
+   procedure Map_C_Behavior_Actions (S            : Node_Id;
+                                     Declarations : List_Id;
+                                     Statements   : List_Id);
 
-   function Analyze_Model (Root : Node_Id) return Boolean;
-   --  Proceed to BA analysis
-
-   function Is_Complete
-     (BA_Root : Node_Id;
-      State   : Node_Id)
-     return Boolean;
-
-   function Is_Initial
-     (BA_Root : Node_Id;
-      State   : Node_Id)
-     return Boolean;
-
-   function Is_Final
-     (BA_Root : Node_Id;
-      State   : Node_Id)
-      return Boolean;
-
-   function Find_BA_Variable
-     (Node             : Node_Id;
-      BA_Root          : Node_Id)
-      return Node_Id;
-
-end Ocarina.Analyzer.AADL_BA;
+end Ocarina.Backends.C_Common.BA;

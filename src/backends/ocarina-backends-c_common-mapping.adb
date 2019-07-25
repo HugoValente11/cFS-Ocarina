@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---    Copyright (C) 2008-2009 Telecom ParisTech, 2010-2015 ESA & ISAE.      --
+--    Copyright (C) 2008-2009 Telecom ParisTech, 2010-2019 ESA & ISAE.      --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -52,6 +52,8 @@ with Ocarina.ME_AADL.AADL_Instances.Nodes;
 with Ocarina.ME_AADL.AADL_Instances.Nutils;
 with Ocarina.ME_AADL.AADL_Instances.Entities;
 
+with Ocarina.Backends.C_Common.BA;
+
 package body Ocarina.Backends.C_Common.Mapping is
 
    use Ocarina.Namet;
@@ -79,6 +81,7 @@ package body Ocarina.Backends.C_Common.Mapping is
    package CTU renames Ocarina.Backends.C_Tree.Nutils;
    package PKR renames Ocarina.Backends.POK_C.Runtime;
    package PHR renames Ocarina.Backends.PO_HI_C.Runtime;
+   package CCBA renames Ocarina.Backends.C_Common.BA;
 
    ---------------------------
    -- Call_Remote_Functions --
@@ -2916,6 +2919,27 @@ package body Ocarina.Backends.C_Common.Mapping is
                  Declarations,
                  Statements);
 
+         when Subrogram_With_Behavior_Specification =>
+
+            --  1) Mapping BA variables into local variable declarations
+            --  in the generated C-subprogram.
+
+            --  2) Mapping BA states, transitions and actions:
+            --  For an AADL subprogram with BA, we have: a single state
+            --  as initial final state; a single transition without
+            --  condition with a Behavior_Action_Block.
+            --  Thus, we need to map the Behavior_Action_Block
+            --  To C-statements in the generated C-subprogram
+            --  Map_C_Behavior_Variables (S,Declarations);
+
+            CCBA.Map_C_Behavior_Variables (S, Declarations);
+            CCBA.Map_C_Behavior_Actions (S, Declarations, Statements);
+
+            return CTU.Make_Function_Implementation
+                (Spec,
+                 Declarations,
+                 Statements);
+
          when others =>
             Display_Located_Error
               (AIN.Loc (S),
@@ -4384,5 +4408,22 @@ package body Ocarina.Backends.C_Common.Mapping is
       Converted := Replace_Char (Converted, '-', '_');
       return To_Lower (Converted);
    end Map_ASN_Type;
+
+   -----------------------------------
+   -- Map_Thread_Port_Variable_Name --
+   -----------------------------------
+
+   function Map_Thread_Port_Variable_Name
+     (E : Node_Id) return Name_Id
+   is
+      Converted : Name_Id;
+   begin
+      Get_Name_String (CTU.To_C_Name
+                       (Display_Name (Identifier
+                          (Parent_Subcomponent (E)))));
+
+      Converted := Name_Find;
+      return To_Lower (Converted);
+   end Map_Thread_Port_Variable_Name;
 
 end Ocarina.Backends.C_Common.Mapping;
