@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                     Copyright (C) 2018 ESA & ISAE.                       --
+--                   Copyright (C) 2018-2019 ESA & ISAE.                    --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -299,17 +299,22 @@ package body Ocarina.Backends.AIR_Conf.Partitions is
                --  MaxMessageSize
 
                if Get_Data_Size (Corresponding_Instance (F)) /= Null_Size then
-                  Q := Make_Literal (XV.New_Numeric_Value (1024, 1, 10));
+                  --  If data size is specified, use this value, add
+                  --  40 to take into account PolyORB-HI/C header
+                  --  (conservative value).
 
-                  --  Q :=
-                  --    Make_Literal
-                  --      (XV.New_Numeric_Value
-                  --         (To_Bytes
-                  --            (Get_Data_Size (Corresponding_Instance (F))),
-                  --          1,
-                  --          10));
+                  Q :=
+                    Make_Literal
+                      (XV.New_Numeric_Value
+                         (40 + To_Bytes
+                            (Get_Data_Size (Corresponding_Instance (F))),
+                          1,
+                          10));
                else
-                  Q := Make_Literal (XV.New_Numeric_Value (1, 1, 10));
+                  Display_Located_Error
+                    (Loc (F),
+                     "No data size given for data size",
+                     Fatal => True);
                end if;
 
                Set_Str_To_Name_Buffer ("MaxMessageSize");
