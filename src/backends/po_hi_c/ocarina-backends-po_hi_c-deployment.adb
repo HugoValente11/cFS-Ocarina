@@ -2274,7 +2274,7 @@ package body Ocarina.Backends.PO_HI_C.Deployment is
                case Execution_Platform is
                   when Platform_Native              |
                     Platform_None                   |
-					Platform_MSP430_FREERTOS        |
+                    Platform_MSP430_FREERTOS        |
                     Platform_LINUX32_XENOMAI_NATIVE |
                     Platform_Native_Compcert        |
                     Platform_LINUX32_XENOMAI_POSIX  |
