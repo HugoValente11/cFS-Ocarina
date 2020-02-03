@@ -237,6 +237,9 @@ package body Ocarina.Backends.PO_HI_C is
          when Platform_AIR =>
             Write_Str ("air");
 
+         when Platform_MSP430_FREERTOS =>
+            Write_Str ("msp430_freertos");
+
          when others =>
             Display_Error
               ("Unsupported platform " & Execution_Platform'Img,
