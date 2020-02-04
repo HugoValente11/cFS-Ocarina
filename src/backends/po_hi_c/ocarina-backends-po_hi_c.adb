@@ -237,6 +237,10 @@ package body Ocarina.Backends.PO_HI_C is
          when Platform_AIR =>
             Write_Str ("air");
 
+         when Platform_Zynq =>
+            Write_Str ("zynq");
+
+
          when others =>
             Display_Error
               ("Unsupported platform " & Execution_Platform'Img,

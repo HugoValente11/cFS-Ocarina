@@ -2280,7 +2280,8 @@ package body Ocarina.Backends.PO_HI_C.Deployment is
                     Platform_WIN32                  |
                     Platform_LINUX_DLL              |
                     Platform_LINUX64                |
-                    Platform_LINUX32                =>
+                    Platform_LINUX32                |
+                    Platform_Zynq                   =>
                      Append_Node_To_List
                        (RE (RE_Littleendian),
                         CTN.Values (Endiannesses));
