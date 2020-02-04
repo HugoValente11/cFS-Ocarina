@@ -334,6 +334,7 @@ package body Ocarina.Backends.Properties is
    Platform_GNAT_Runtime_Name           : Name_Id;
    Platform_AIR_Name                    : Name_Id;
    Platform_Zynq_RTEMS_Name             : Name_Id;
+   Platform_Zynq_RTEMS_QEMU_Name        : Name_Id;
 
    Transport_BSD_Sockets_Name : Name_Id;
    Transport_SpaceWire_Name   : Name_Id;
@@ -2515,6 +2516,8 @@ package body Ocarina.Backends.Properties is
             return Platform_AIR;
          elsif P_Name = Platform_Zynq_RTEMS_Name then
             return Platform_Zynq;
+         elsif P_Name = Platform_Zynq_RTEMS_QEMU_Name then
+            return Platform_Zynq_QEMU;
          else
             return Platform_None;
          end if;
@@ -3082,6 +3085,7 @@ package body Ocarina.Backends.Properties is
       Platform_GNAT_Runtime_Name     := Get_String_Name ("gnat_runtime");
       Platform_AIR_Name              := Get_String_Name ("air");
       Platform_Zynq_RTEMS_Name       := Get_String_Name ("zynq_rtems");
+      Platform_Zynq_RTEMS_QEMU_Name  := Get_String_Name ("zynq_rtems_qemu");
 
 
       Transport_BSD_Sockets_Name := Get_String_Name ("bsd_sockets");

@@ -240,6 +240,8 @@ package body Ocarina.Backends.PO_HI_C is
          when Platform_Zynq =>
             Write_Str ("zynq");
 
+         when Platform_Zynq_QEMU =>
+            Write_Str ("zynq_qemu");
 
          when others =>
             Display_Error

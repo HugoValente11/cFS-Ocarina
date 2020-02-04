@@ -43,7 +43,8 @@ property set Deployment is
     VXWORKS,                  -- VXWORKS
     FREERTOS,                 -- FREERTOS
     AIR,                      -- AIR Hypervisor, by GMV
-    ZYNQ_RTEMS                -- Zynq support, for CoRA-MBAD
+    ZYNQ_RTEMS,               -- Zynq support, for CoRA-MBAD
+    ZYNQ_RTEMS_QEMU           -- Zynq support, for CoRA-MBAD, for QEMU
     );
   --  Supported platforms
 
