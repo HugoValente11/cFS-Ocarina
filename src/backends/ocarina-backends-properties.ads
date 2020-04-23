@@ -569,6 +569,7 @@ package Ocarina.Backends.Properties is
       Platform_AIR,
       Platform_Zynq,
       Platform_Zynq_QEMU,
+      Platform_MSP430_FREERTOS,
       Platform_None); --  Unspecified
 
    function Get_Execution_Platform

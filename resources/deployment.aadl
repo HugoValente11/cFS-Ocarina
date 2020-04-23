@@ -44,7 +44,8 @@ property set Deployment is
     FREERTOS,                 -- FREERTOS
     AIR,                      -- AIR Hypervisor, by GMV
     ZYNQ_RTEMS,               -- Zynq support, for CoRA-MBAD
-    ZYNQ_RTEMS_QEMU           -- Zynq support, for CoRA-MBAD, for QEMU
+    ZYNQ_RTEMS_QEMU,          -- Zynq support, for CoRA-MBAD, for QEMU
+    MSP430_FREERTOS           -- MSP430 board with FreeRTOS
     );
   --  Supported platforms
 
