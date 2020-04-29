@@ -290,10 +290,11 @@ procedure Ocarina_Cmd is
                File_Name : constant String :=
                  Image (Value (N), Quoted => False);
             begin
-               Get_Name_String (Current_Scenario_Dirname);
-               Add_Str_To_Name_Buffer (File_Name);
+               --  Get_Name_String (Current_Scenario_Dirname);
+               --  Add_Str_To_Name_Buffer (File_Name);
+
                Ocarina.Files.Add_File_To_Parse_List
-                 (Name_Find, Add_Suffix => True);
+                 (Get_String_Name (File_Name), Add_Suffix => True);
                N := Next_Node (N);
             end;
          end loop;
@@ -566,6 +567,8 @@ procedure Ocarina_Cmd is
          Ocarina.AADL_Version := Temp_AADL_Version;
          Set_Current_Backend_Name (The_Backend_Name);
 
+         Reset_Current_Action;
+         Ocarina.Cmd_Line.Process;
          Ocarina.Configuration.Init_Modules;
          Sources.Free;
          Sources.Init;
