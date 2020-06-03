@@ -2005,14 +2005,21 @@ package body Ocarina.Backends.Build_Utils is
       ---------------------
 
       procedure Compile_C_Files (C_Sources : Name_Tables.Instance) is
-         pragma Unreferenced (C_Sources);
-
       begin
          --  Define VPATH, search path for All Prerequisites
 
          Write_Str ("VPATH = ../..");
          if Scenario_Dir /= null then
             Write_Str (":" & Scenario_Dir.all);
+         end if;
+
+         if Length (C_Sources) > 0 then
+            for J in Name_Tables.First .. Name_Tables.Last (C_Sources) loop
+               Write_Str (":");
+               Write_Str
+                 (Dir_Name (Get_Name_String (C_Sources.Table (J))));
+               exit when J = Name_Tables.Last (C_Sources);
+            end loop;
          end if;
          Write_Eol;
          Write_Eol;
