@@ -237,8 +237,8 @@ package body Ocarina.Backends.PO_HI_C is
          when Platform_AIR =>
             Write_Str ("air");
 
-         when Platform_Zynq =>
-            Write_Str ("zynq");
+         when Platform_ZynqZC706 =>
+            Write_Str ("zynqzc706");
 
          when Platform_Zynq_QEMU =>
             Write_Str ("zynq_qemu");

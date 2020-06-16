@@ -333,7 +333,7 @@ package body Ocarina.Backends.Properties is
    Platform_Vxworks_Name                : Name_Id;
    Platform_GNAT_Runtime_Name           : Name_Id;
    Platform_AIR_Name                    : Name_Id;
-   Platform_Zynq_RTEMS_Name             : Name_Id;
+   Platform_ZynqZC706_RTEMS_Name        : Name_Id;
    Platform_Zynq_RTEMS_QEMU_Name        : Name_Id;
    Platform_MSP430_FREERTOS_Name        : Name_Id;
 
@@ -2515,8 +2515,8 @@ package body Ocarina.Backends.Properties is
             return Platform_GNAT_Runtime;
          elsif P_Name = Platform_AIR_Name then
             return Platform_AIR;
-         elsif P_Name = Platform_Zynq_RTEMS_Name then
-            return Platform_Zynq;
+         elsif P_Name = Platform_ZynqZC706_RTEMS_Name then
+            return Platform_ZynqZC706;
          elsif P_Name = Platform_Zynq_RTEMS_QEMU_Name then
             return Platform_Zynq_QEMU;
          elsif P_Name = Platform_MSP430_FREERTOS_Name then
@@ -3087,7 +3087,7 @@ package body Ocarina.Backends.Properties is
       Platform_Vxworks_Name          := Get_String_Name ("vxworks");
       Platform_GNAT_Runtime_Name     := Get_String_Name ("gnat_runtime");
       Platform_AIR_Name              := Get_String_Name ("air");
-      Platform_Zynq_RTEMS_Name       := Get_String_Name ("zynq_rtems");
+      Platform_ZynqZC706_RTEMS_Name  := Get_String_Name ("zynqzc706_rtems");
       Platform_Zynq_RTEMS_QEMU_Name  := Get_String_Name ("zynq_rtems_qemu");
       Platform_MSP430_FREERTOS_Name  := Get_String_Name ("msp430_freertos");
 

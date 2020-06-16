@@ -567,7 +567,7 @@ package Ocarina.Backends.Properties is
       Platform_VxWorks,
       Platform_GNAT_Runtime,
       Platform_AIR,
-      Platform_Zynq,
+      Platform_ZynqZC706,
       Platform_Zynq_QEMU,
       Platform_MSP430_FREERTOS,
       Platform_None); --  Unspecified
