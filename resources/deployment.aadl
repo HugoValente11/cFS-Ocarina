@@ -43,7 +43,8 @@ property set Deployment is
     VXWORKS,                  -- VXWORKS
     FREERTOS,                 -- FREERTOS
     MSP430_FREERTOS,          -- MSP430 board with FreeRTOS
-    AIR                       -- AIR Hypervisor, by GMV
+    AIR,                      -- AIR Hypervisor, by GMV
+    AIR_IOP                   -- AIR IOP partition
     );
   --  Supported platforms
 

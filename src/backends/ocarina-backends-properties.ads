@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---    Copyright (C) 2008-2009 Telecom ParisTech, 2010-2019 ESA & ISAE.      --
+--    Copyright (C) 2008-2009 Telecom ParisTech, 2010-2020 ESA & ISAE.      --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -568,6 +568,7 @@ package Ocarina.Backends.Properties is
       Platform_GNAT_Runtime,
       Platform_AIR,
       Platform_MSP430_FREERTOS,
+      Platform_AIR_IOP,
       Platform_None); --  Unspecified
 
    function Get_Execution_Platform
