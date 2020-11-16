@@ -6,7 +6,8 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---    Copyright (C) 2008-2009 Telecom ParisTech, 2010-2020 ESA & ISAE.      --
+--               Copyright (C) 2008-2009 Telecom ParisTech,                 --
+--                 2010-2019 ESA & ISAE, 2019-2020 OpenAADL                 --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -24,8 +25,8 @@
 -- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
 -- <http://www.gnu.org/licenses/>.                                          --
 --                                                                          --
---                 Ocarina is maintained by the TASTE project               --
---                      (taste-users@lists.tuxfamily.org)                   --
+--                    Ocarina is maintained by OpenAADL team                --
+--                              (info@openaadl.org)                         --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -237,6 +238,9 @@ package body Ocarina.Backends.PO_HI_C is
          when Platform_AIR =>
             Write_Str ("air");
 
+         when Platform_AIR_IOP =>
+            Write_Str ("air_iop");
+
          when Platform_MSP430_FREERTOS =>
             Write_Str ("msp430_freertos");
 
@@ -295,7 +299,8 @@ package body Ocarina.Backends.PO_HI_C is
 
       if Scenario_Dir /= null then
          Write_Space;
-         Write_Str ("""-I" & Scenario_Dir.all & """");
+         Write_Str ("""-I" & Remove_Directory_Separator (Scenario_Dir.all)
+                      & """");
       end if;
 
       if Length (User_Source_Dirs) > 0 then

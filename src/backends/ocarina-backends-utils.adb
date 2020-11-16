@@ -6,7 +6,8 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---    Copyright (C) 2005-2009 Telecom ParisTech, 2010-2020 ESA & ISAE.      --
+--               Copyright (C) 2005-2009 Telecom ParisTech,                 --
+--                 2010-2019 ESA & ISAE, 2019-2020 OpenAADL                 --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -24,8 +25,8 @@
 -- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
 -- <http://www.gnu.org/licenses/>.                                          --
 --                                                                          --
---                 Ocarina is maintained by the TASTE project               --
---                      (taste-users@lists.tuxfamily.org)                   --
+--                    Ocarina is maintained by OpenAADL team                --
+--                              (info@openaadl.org)                         --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -224,6 +225,16 @@ package body Ocarina.Backends.Utils is
          Name_Len := Name_Len - 1;
       end if;
       return Name_Find;
+   end Remove_Directory_Separator;
+
+   function Remove_Directory_Separator (Path : String) return String is
+   begin
+      if Path'Length >= 1 and then
+        Path (Path'Last) = Directory_Separator
+      then
+         return Path (Path'First .. Path'Last - 1);
+      end if;
+      return Path;
    end Remove_Directory_Separator;
 
    --------------------
@@ -3359,6 +3370,12 @@ package body Ocarina.Backends.Utils is
             end if;
             S := Next_Node (S);
          end loop;
+
+         Display_Located_Error
+           (Loc (Process),
+            "This process is not connected to a device through bus at " &
+              Image (Loc (Bus)),
+            Fatal => True);
       end if;
 
       return No_Node;
