@@ -6,7 +6,8 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---    Copyright (C) 2008-2009 Telecom ParisTech, 2010-2015 ESA & ISAE.      --
+--               Copyright (C) 2008-2009 Telecom ParisTech,                 --
+--                 2010-2019 ESA & ISAE, 2019-2020 OpenAADL                 --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -24,8 +25,8 @@
 -- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
 -- <http://www.gnu.org/licenses/>.                                          --
 --                                                                          --
---                 Ocarina is maintained by the TASTE project               --
---                      (taste-users@lists.tuxfamily.org)                   --
+--                    Ocarina is maintained by OpenAADL team                --
+--                              (info@openaadl.org)                         --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -69,6 +70,12 @@ package Ocarina.FE_AADL.Parser is
    type P_Refinable_Item_Function_Ptr is access function
      (Container : Node_Id;
       Refinable : Boolean) return Node_Id;
+
+   type P_Refinable_Requires_Item_Function_Ptr is access function
+     (Container : Node_Id;
+      Refinable : Boolean;
+      Requires  : Boolean) return Node_Id;
+
    --  Pointer to a function which parses an item
 
 private
@@ -88,6 +95,14 @@ private
      (Func         : P_Refinable_Item_Function_Ptr;
       Container    : Node_Id;
       Refinable    : Boolean;
+      Code         : Parsing_Code;
+      At_Least_One : Boolean := True) return Integer;
+
+   function P_Items_List
+     (Func         : P_Refinable_Requires_Item_Function_Ptr;
+      Container    : Node_Id;
+      Refinable    : Boolean;
+      Requires     : Boolean;
       Code         : Parsing_Code;
       At_Least_One : Boolean := True) return Integer;
 

@@ -6,7 +6,8 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---    Copyright (C) 2008-2009 Telecom ParisTech, 2010-2017 ESA & ISAE.      --
+--               Copyright (C) 2008-2009 Telecom ParisTech,                 --
+--                 2010-2019 ESA & ISAE, 2019-2020 OpenAADL                 --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -24,8 +25,8 @@
 -- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
 -- <http://www.gnu.org/licenses/>.                                          --
 --                                                                          --
---                 Ocarina is maintained by the TASTE project               --
---                      (taste-users@lists.tuxfamily.org)                   --
+--                    Ocarina is maintained by OpenAADL team                --
+--                              (info@openaadl.org)                         --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,7 +39,6 @@ with Ocarina.ME_AADL.AADL_Instances.Entities;
 package body Ocarina.Instances.Components.Modes is
 
    use Ocarina.ME_AADL.AADL_Tree.Nodes;
-   use Ocarina.ME_AADL.AADL_Tree.Nutils;
    use Ocarina.ME_AADL.AADL_Instances.Nodes;
    use Ocarina.ME_AADL.AADL_Instances.Nutils;
    use Ocarina.ME_AADL.AADL_Instances.Entities;
@@ -354,8 +354,8 @@ package body Ocarina.Instances.Components.Modes is
 
          AIN.Set_In_Modes
            (Subclause_Instance,
-            New_Node (K_In_Modes, ATN.Loc (Subclause_In_Modes)));
-         ATN.Set_Modes
+            New_Node (AIN.K_In_Modes, ATN.Loc (Subclause_In_Modes)));
+         AIN.Set_Modes
            (AIN.In_Modes (Subclause_Instance),
             AINU.New_List (K_List_Id, ATN.Loc (Subclause_In_Modes)));
 
@@ -364,7 +364,7 @@ package body Ocarina.Instances.Components.Modes is
          declare
             Mode_List :
               List_Id renames
-              ATN.Modes (AIN.In_Modes (Subclause_Instance));
+              AIN.Modes (AIN.In_Modes (Subclause_Instance));
          begin
             while Present (MoT) loop
                case ATN.Kind (MoT) is

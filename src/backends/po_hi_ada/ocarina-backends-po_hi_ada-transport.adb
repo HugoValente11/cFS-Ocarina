@@ -6,7 +6,8 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---    Copyright (C) 2008-2009 Telecom ParisTech, 2010-2018 ESA & ISAE.      --
+--               Copyright (C) 2008-2009 Telecom ParisTech,                 --
+--                 2010-2019 ESA & ISAE, 2019-2020 OpenAADL                 --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -24,8 +25,8 @@
 -- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
 -- <http://www.gnu.org/licenses/>.                                          --
 --                                                                          --
---                 Ocarina is maintained by the TASTE project               --
---                      (taste-users@lists.tuxfamily.org)                   --
+--                    Ocarina is maintained by OpenAADL team                --
+--                              (info@openaadl.org)                         --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -158,6 +159,13 @@ package body Ocarina.Backends.PO_HI_Ada.Transport is
            Parameter_Mode      => Mode_In);
       Append_Node_To_List (N, Profile);
 
+      N :=
+        Make_Parameter_Specification
+          (Defining_Identifier => Make_Defining_Identifier (PN (P_Error)),
+           Subtype_Mark        => RE (RE_Error_Kind),
+           Parameter_Mode      => Mode_Out);
+      Append_Node_To_List (N, Profile);
+
       --  Pre-condition
       if Add_SPARK2014_Annotations and then With_Aspect then
          Aspect := Make_Aspect_Specification
@@ -175,7 +183,7 @@ package body Ocarina.Backends.PO_HI_Ada.Transport is
         Make_Subprogram_Specification
           (Defining_Identifier => Make_Defining_Identifier (SN (S_Send)),
            Parameter_Profile   => Profile,
-           Return_Type         => RE (RE_Error_Kind),
+           Return_Type         => No_Node,
            Aspect_Specification => Aspect);
 
       return N;
@@ -534,7 +542,8 @@ package body Ocarina.Backends.PO_HI_Ada.Transport is
                 (RE (RE_Error_Kind),
                  Make_Record_Aggregate
                    (Make_List_Id (RE (RE_Error_Transport))));
-            N := Make_Return_Statement (N);
+            N := Make_Assignment_Statement
+               (Make_Defining_Identifier (PN (P_Error)), N);
             Append_Node_To_List (N, Statements);
 
          else
@@ -602,8 +611,8 @@ package body Ocarina.Backends.PO_HI_Ada.Transport is
                          (Map_Send_Name (Corresponding_Instance (T))),
                        Make_List_Id
                          (Make_Defining_Identifier (PN (P_Entity)),
-                          Make_Defining_Identifier (PN (P_Msg))));
-                  N := Make_Return_Statement (N);
+                          Make_Defining_Identifier (PN (P_Msg)),
+                          Make_Defining_Identifier (PN (P_Error))));
 
                   --  The case statement alternative
 
@@ -631,7 +640,9 @@ package body Ocarina.Backends.PO_HI_Ada.Transport is
                       (RE (RE_Error_Kind),
                        Make_Record_Aggregate
                          (Make_List_Id (RE (RE_Error_Transport))));
-                  N := Make_Return_Statement (N);
+                  N := Make_Assignment_Statement
+                  (Make_Defining_Identifier (PN (P_Error)), N);
+
                   Append_Node_To_List (N, Else_Statements);
 
                   ADN.Set_First_Node
@@ -654,7 +665,8 @@ package body Ocarina.Backends.PO_HI_Ada.Transport is
                       (RE (RE_Error_Kind),
                        Make_Record_Aggregate
                          (Make_List_Id (RE (RE_Error_Transport))));
-                  N := Make_Return_Statement (N);
+                  N := Make_Assignment_Statement
+                  (Make_Defining_Identifier (PN (P_Error)), N);
                   Append_Node_To_List (N, Statements);
                end if;
             end;
@@ -891,6 +903,13 @@ package body Ocarina.Backends.PO_HI_Ada.Transport is
               Parameter_Mode      => Mode_In);
          Append_Node_To_List (N, Profile);
 
+         N :=
+          Make_Parameter_Specification
+             (Defining_Identifier => Make_Defining_Identifier (PN (P_Error)),
+              Subtype_Mark        => RE (RE_Error_Kind),
+              Parameter_Mode      => Mode_Out);
+         Append_Node_To_List (N, Profile);
+
          --  The subprogram spec
 
          N :=
@@ -898,7 +917,8 @@ package body Ocarina.Backends.PO_HI_Ada.Transport is
              (Defining_Identifier =>
                 Make_Defining_Identifier (Map_Send_Name (E)),
               Parameter_Profile => Profile,
-              Return_Type       => RE (RE_Error_Kind));
+              Return_Type       => No_Node);
+
          return N;
       end Internal_Send_Spec;
 
@@ -1025,7 +1045,9 @@ package body Ocarina.Backends.PO_HI_Ada.Transport is
                                       Make_Record_Aggregate
                                         (Make_List_Id (RE (RE_Error_None))));
 
-                                 N := Make_Return_Statement (N);
+                                 N := Make_Assignment_Statement
+                                    (Make_Defining_Identifier (PN (P_Error)),
+                                    N);
 
                                  --  Create the case statement alternative
 
@@ -1116,8 +1138,9 @@ package body Ocarina.Backends.PO_HI_Ada.Transport is
                                               Make_Defining_Identifier
                                                 (PN (P_Message)),
                                             Attribute => A_Length)));
-
-                                 N := Make_Return_Statement (N);
+                                 N := Make_Assignment_Statement
+                                    (Make_Defining_Identifier (PN (P_Error)),
+                                    N);
 
                                  --  Create the case statement alternative
 
@@ -1215,7 +1238,8 @@ package body Ocarina.Backends.PO_HI_Ada.Transport is
                       (RE (RE_Error_Kind),
                        Make_Record_Aggregate
                          (Make_List_Id (RE (RE_Error_Transport))));
-                  N := Make_Return_Statement (N);
+                  N := Make_Assignment_Statement
+                  (Make_Defining_Identifier (PN (P_Error)), N);
                   Append_Node_To_List (N, Else_Statements);
 
                   ADN.Set_First_Node
@@ -1240,7 +1264,8 @@ package body Ocarina.Backends.PO_HI_Ada.Transport is
                    (RE (RE_Error_Kind),
                     Make_Record_Aggregate
                       (Make_List_Id (RE (RE_Error_Transport))));
-               N := Make_Return_Statement (N);
+               N := Make_Assignment_Statement
+               (Make_Defining_Identifier (PN (P_Error)), N);
                Append_Node_To_List (N, Statements);
             end if;
          end if;

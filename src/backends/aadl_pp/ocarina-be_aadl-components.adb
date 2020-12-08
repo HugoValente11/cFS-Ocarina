@@ -6,7 +6,8 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---    Copyright (C) 2008-2009 Telecom ParisTech, 2010-2015 ESA & ISAE.      --
+--               Copyright (C) 2008-2009 Telecom ParisTech,                 --
+--                 2010-2019 ESA & ISAE, 2019-2020 OpenAADL                 --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -24,8 +25,8 @@
 -- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
 -- <http://www.gnu.org/licenses/>.                                          --
 --                                                                          --
---                 Ocarina is maintained by the TASTE project               --
---                      (taste-users@lists.tuxfamily.org)                   --
+--                    Ocarina is maintained by OpenAADL team                --
+--                              (info@openaadl.org)                         --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -207,11 +208,15 @@ package body Ocarina.BE_AADL.Components is
       end if;
 
       if not Is_Empty (ATN.Modes (Node)) then
+         List_Node := First_Node (ATN.Modes (Node));
          Write_Indentation;
+         if Kind (List_Node) = K_Mode and then Is_Requires (List_Node) then
+            Print_Token (T_Requires);
+            Write_Space;
+         end if;
          Print_Token (T_Modes);
          Write_Eol;
          Increment_Indentation;
-         List_Node := First_Node (ATN.Modes (Node));
 
          while Present (List_Node) loop
             case Kind (List_Node) is

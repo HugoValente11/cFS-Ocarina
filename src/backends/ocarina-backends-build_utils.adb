@@ -6,7 +6,8 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---    Copyright (C) 2008-2009 Telecom ParisTech, 2010-2020 ESA & ISAE.      --
+--               Copyright (C) 2008-2009 Telecom ParisTech,                 --
+--                 2010-2019 ESA & ISAE, 2019-2020 OpenAADL                 --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -24,8 +25,8 @@
 -- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
 -- <http://www.gnu.org/licenses/>.                                          --
 --                                                                          --
---                 Ocarina is maintained by the TASTE project               --
---                      (taste-users@lists.tuxfamily.org)                   --
+--                    Ocarina is maintained by OpenAADL team                --
+--                              (info@openaadl.org)                         --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -675,7 +676,9 @@ package body Ocarina.Backends.Build_Utils is
 
                      Name_Tables.Append (M.C_Libraries, Name_Find);
 
-                  elsif Name_Buffer (Name_Len - 1 .. Name_Len) = ".c" then
+                  elsif (Name_Buffer (Name_Len - 1 .. Name_Len) = ".c" or else
+                           Name_Buffer (Name_Len - 3 .. Name_Len) = ".cpp")
+                  then
                      if Source_Dirname /= Get_String_Name ("./") then
                         Get_Name_String (Source_Dirname);
                         Get_Name_String_And_Append (Source_Basename);
@@ -791,7 +794,8 @@ package body Ocarina.Backends.Build_Utils is
 
                   Get_Name_String (Source_Basename);
 
-                  if Name_Buffer (Name_Len - 2 .. Name_Len) = ".cc"
+                  if Name_Buffer (Name_Len - 1 .. Name_Len) = ".c"
+                    or else Name_Buffer (Name_Len - 2 .. Name_Len) = ".cc"
                     or else Name_Buffer (Name_Len - 3 .. Name_Len) = ".cpp"
                   then
                      Get_Name_String (Source_Dirname);
@@ -1928,7 +1932,11 @@ package body Ocarina.Backends.Build_Utils is
                Set_Str_To_Name_Buffer
                  (Base_Name (Name_Buffer (1 .. Name_Len)));
 
-               Name_Buffer (Name_Len) := 'o';
+               if Name_Buffer (Name_Len - 2 .. Name_Len) = "cpp" then
+                  Name_Buffer (Name_Len - 2 .. Name_Len) := "o  ";
+               else
+                  Name_Buffer (Name_Len) := 'o';
+               end if;
                Write_Name (Name_Find);
 
                exit when J = Name_Tables.Last (C_Sources);
@@ -1950,6 +1958,8 @@ package body Ocarina.Backends.Build_Utils is
                   Name_Buffer (Name_Len - 2 .. Name_Len) := "o  ";
                elsif Name_Buffer (Name_Len - 1 .. Name_Len) = "cc" then
                   Name_Buffer (Name_Len - 1 .. Name_Len) := "o ";
+               elsif Name_Buffer (Name_Len - 1 .. Name_Len) = ".c" then
+                  Name_Buffer (Name_Len - 1 .. Name_Len) := ".o ";
                end if;
 
                Write_Name (Name_Find);
@@ -2032,14 +2042,15 @@ package body Ocarina.Backends.Build_Utils is
          Write_Line ("%.o : %.c");
          Write_Char (ASCII.HT);
          Write_Str ("$(CC) -c $(INCLUDE) $(CFLAGS) " &
-                      "-I$(RUNTIME_PATH)/include ");
+                      "-I""$(RUNTIME_PATH)/include"" ");
          if Scenario_Dir /= null then
-            Write_Str ("-I" & Scenario_Dir.all & " ");
+            Write_Str ("-I""" & Remove_Directory_Separator (Scenario_Dir.all)
+                         & """ ");
          end if;
          Write_Line (" $< -o $@");
          Write_Eol;
 
-         --  compile-c-files rule, simply biuld $(USER_OBJS)
+         --  compile-c-files rule, simply build $(USER_OBJS)
 
          Write_Line ("compile-c-files: $(USER_OBJS) $(C_OBJECTS)");
 
@@ -2052,6 +2063,8 @@ package body Ocarina.Backends.Build_Utils is
       procedure Compile_CPP_Files (CPP_Sources : Name_Tables.Instance) is
       begin
          if Length (CPP_Sources) > 0 then
+            Write_Line ("USE_CPP_LINKER = 1");
+            Write_Str ("VPATH += ");
             for J in Name_Tables.First .. Name_Tables.Last (CPP_Sources) loop
                Write_Str (":");
                Write_Str
@@ -2067,9 +2080,10 @@ package body Ocarina.Backends.Build_Utils is
          Write_Line ("%.o : %.cpp");
          Write_Char (ASCII.HT);
          Write_Str ("$(CXX) -c $(INCLUDE) $(CFLAGS) " &
-                      "-I$(RUNTIME_PATH)/include ");
+                      "-I""$(RUNTIME_PATH)/include"" ");
          if Scenario_Dir /= null then
-            Write_Str ("-I" & Scenario_Dir.all & " ");
+            Write_Str ("-I""" & Remove_Directory_Separator (Scenario_Dir.all)
+                         & """ ");
          end if;
          Write_Line (" $< -o $@");
          Write_Eol;

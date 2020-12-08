@@ -6,7 +6,8 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---    Copyright (C) 2008-2009 Telecom ParisTech, 2010-2020 ESA & ISAE.      --
+--               Copyright (C) 2008-2009 Telecom ParisTech,                 --
+--                 2010-2019 ESA & ISAE, 2019-2020 OpenAADL                 --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -24,8 +25,8 @@
 -- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
 -- <http://www.gnu.org/licenses/>.                                          --
 --                                                                          --
---                 Ocarina is maintained by the TASTE project               --
---                      (taste-users@lists.tuxfamily.org)                   --
+--                    Ocarina is maintained by OpenAADL team                --
+--                              (info@openaadl.org)                         --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -336,7 +337,7 @@ package body Ocarina.Backends.Properties is
    Platform_ZynqZC706_RTEMS_Name        : Name_Id;
    Platform_Zynq_RTEMS_QEMU_Name        : Name_Id;
    Platform_MSP430_FREERTOS_Name        : Name_Id;
-   Platform_Air_IOP_Name                : Name_Id;
+   Platform_AIR_IOP_Name                : Name_Id;
 
    Transport_BSD_Sockets_Name : Name_Id;
    Transport_SpaceWire_Name   : Name_Id;
@@ -2391,19 +2392,42 @@ package body Ocarina.Backends.Properties is
                  (Parent_Component (Get_Referenced_Entity (AIN.Source (C))))) =
               Platform_AIR
               and then
+              (Get_Execution_Platform
+                (Get_Bound_Processor
+                   (Parent_Component
+                      (Get_Referenced_Entity (AIN.Destination (C))))) =
+              Platform_AIR
+              or else
               Get_Execution_Platform
                 (Get_Bound_Processor
                    (Parent_Component
                       (Get_Referenced_Entity (AIN.Destination (C))))) =
-              Platform_AIR))
+              Platform_AIR_IOP))
+            or else
+           (Get_Execution_Platform
+              (Get_Bound_Processor
+                 (Parent_Component (Get_Referenced_Entity (AIN.Source (C))))) =
+              Platform_AIR_IOP
+              and then
+              (Get_Execution_Platform
+                (Get_Bound_Processor
+                   (Parent_Component
+                      (Get_Referenced_Entity (AIN.Destination (C))))) =
+              Platform_AIR
+              or else
+              Get_Execution_Platform
+                (Get_Bound_Processor
+                   (Parent_Component
+                      (Get_Referenced_Entity (AIN.Destination (C))))) =
+              Platform_AIR_IOP)))
         and then
         Parent_Component
           (Parent_Subcomponent
              (Parent_Component
                 (Get_Referenced_Entity (AIN.Destination (C))))) =
         Parent_Component
-        (Parent_Subcomponent
-           (Parent_Component (Get_Referenced_Entity (AIN.Source (C)))))
+          (Parent_Subcomponent
+             (Parent_Component (Get_Referenced_Entity (AIN.Source (C)))))
       then
          return No_Node;
 

@@ -6,7 +6,8 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---    Copyright (C) 2006-2009 Telecom ParisTech, 2010-2019 ESA & ISAE.      --
+--               Copyright (C) 2006-2009 Telecom ParisTech,                 --
+--                 2010-2019 ESA & ISAE, 2019-2020 OpenAADL                 --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -24,8 +25,8 @@
 -- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
 -- <http://www.gnu.org/licenses/>.                                          --
 --                                                                          --
---                 Ocarina is maintained by the TASTE project               --
---                      (taste-users@lists.tuxfamily.org)                   --
+--                    Ocarina is maintained by OpenAADL team                --
+--                              (info@openaadl.org)                         --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -57,6 +58,7 @@ package Ocarina.Backends.PO_HI_Ada.Runtime is
       RU_PolyORB_HI_Generated_Transport,
       RU_PolyORB_HI_Generated_Types,
       RU_PolyORB_HI,
+      RU_POlyORB_HI_Epoch,
       RU_PolyORB_HI_Errors,
       RU_PolyORB_HI_Hybrid_Task_Driver,
       RU_PolyORB_HI_Hybrid_Task_Driver_Driver,
@@ -117,6 +119,7 @@ package Ocarina.Backends.PO_HI_Ada.Runtime is
       RE_Seconds,                    --  Ada.Real_Time.Seconds
       RE_Minutes,                    --  Ada.Real_Time.Minutes
       RE_Time,                       --  Ada.Real_Time.Time
+      RE_Time_First,                 --  Ada.Real_Time.Time_First
       RE_Time_Span,                  --  Ada.Real_Time.Time_Span
       RE_Set_True,                   --  Ada.Synchronous_Task_Control.Set_True
       RE_Integer_8,                  --  Interfaces.Integer_8
@@ -171,6 +174,8 @@ package Ocarina.Backends.PO_HI_Ada.Runtime is
       RE_To_HI_String,               --  PolyORB_HI.Utils.To_HI_String
       RE_Naming_Table_Type,          --  PolyORB_HI.Utils.Naming_Table_Type
       RE_Corresponding_Port,         --  Po..HI.Port_Types.Corresponding_Port
+      RE_Destinations_Array,         --  Po..HI.Port_Types.Destinations_Array
+      RE_Empty_Destination,          --  Po..HI.Port_Types.Empty_Destination
       RE_Non_Blocking_Receive,       --  Po..HI.Protocols.Non_Blocking_Receive
       RE_Send_1,                     --  Po..HI.Protocols.Send
       RE_Initialize,                 --  Po..HI.Transport_Low_Level.Initialize
@@ -189,7 +194,7 @@ package Ocarina.Backends.PO_HI_Ada.Runtime is
       RE_Wide_Character,             --  Standard.Wide_Character
       RE_Suspend_Forever,            --  Suspenders.Suspend_Forever
       RE_Unblock_All_Tasks,          --  Suspenders.Unblock_All_Tasks
-      RE_System_Startup_Time,        --  Suspenders.System_Startup_Time
+      RE_System_Startup_Time,        --  Epoch.System_Startup_Time
       RE_Address,                    --  System.Address
       RE_Null_Address,               --  System.Null_Address
       RE_Default_Priority,           --  System.Default_Priority
@@ -224,6 +229,7 @@ package Ocarina.Backends.PO_HI_Ada.Runtime is
       RE_Seconds                    => RU_Ada_Real_Time,
       RE_Minutes                    => RU_Ada_Real_Time,
       RE_Time                       => RU_Ada_Real_Time,
+      RE_Time_First                 => RU_Ada_Real_Time,
       RE_Time_Span                  => RU_Ada_Real_Time,
       RE_Set_True                   => RU_Ada_Synchronous_Task_Control,
       RE_Integer_8                  => RU_Interfaces,
@@ -271,6 +277,8 @@ package Ocarina.Backends.PO_HI_Ada.Runtime is
       RE_To_HI_String               => RU_PolyORB_HI_Utils,
       RE_Naming_Table_Type          => RU_PolyORB_HI_Utils,
       RE_Corresponding_Port         => RU_PolyORB_HI_Port_Types,
+      RE_Destinations_Array         => RU_PolyORB_HI_Port_Types,
+      RE_Empty_Destination          => RU_PolyORB_HI_Port_Types,
       RE_Non_Blocking_Receive       => RU_PolyORB_HI_Protocols,
       RE_Send_1                     => RU_PolyORB_HI_Protocols,
       RE_Stream_Element_Array       => RU_PolyORB_HI_Streams,
@@ -291,7 +299,7 @@ package Ocarina.Backends.PO_HI_Ada.Runtime is
       RE_Wide_Character             => RU_Standard,
       RE_Suspend_Forever            => RU_PolyORB_HI_Suspenders,
       RE_Unblock_All_Tasks          => RU_PolyORB_HI_Suspenders,
-      RE_System_Startup_Time        => RU_PolyORB_HI_Suspenders,
+      RE_System_Startup_Time        => RU_PolyORB_HI_Epoch,
       RE_Address                    => RU_System,
       RE_Null_Address               => RU_System,
       RE_Default_Priority           => RU_System,

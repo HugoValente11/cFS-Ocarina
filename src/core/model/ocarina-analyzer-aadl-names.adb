@@ -6,7 +6,8 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---       Copyright (C) 2009 Telecom ParisTech, 2010-2015 ESA & ISAE.        --
+--                  Copyright (C) 2009 Telecom ParisTech,                   --
+--                 2010-2019 ESA & ISAE, 2019-2020 OpenAADL                 --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -24,8 +25,8 @@
 -- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
 -- <http://www.gnu.org/licenses/>.                                          --
 --                                                                          --
---                 Ocarina is maintained by the TASTE project               --
---                      (taste-users@lists.tuxfamily.org)                   --
+--                    Ocarina is maintained by OpenAADL team                --
+--                              (info@openaadl.org)                         --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,7 +39,6 @@ with Ocarina.ME_AADL.AADL_Tree.Nutils;
 with Ocarina.ME_AADL.AADL_Tree.Entities;
 
 package body Ocarina.Analyzer.AADL.Names is
-
    use Ocarina.Analyzer.AADL.Finder;
    use Ocarina.Analyzer.Messages;
    use Ocarina.Analyzer.AADL.Naming_Rules;
@@ -369,7 +369,12 @@ package body Ocarina.Analyzer.AADL.Names is
          List_Node := First_Node (Modes (Node));
 
          while Present (List_Node) loop
-            if Kind (List_Node) = K_Mode then
+            if Kind (List_Node) = K_Mode
+               or else (
+                   Kind (List_Node) = K_Mode_Transition
+                   and then Identifier (List_Node) /= No_Node
+               )
+            then
                Success :=
                  Enter_Name_In_Scope (Identifier (List_Node))
                  and then Check_Property_Association_Names (List_Node)
@@ -446,6 +451,22 @@ package body Ocarina.Analyzer.AADL.Names is
               Enter_Name_In_Scope (Identifier (List_Node))
               and then Check_Property_Association_Names (List_Node)
               and then Success;
+            List_Node := Next_Node (List_Node);
+         end loop;
+      end if;
+
+      --  Modes
+      if not Is_Empty (Modes (Node)) then
+         List_Node := First_Node (Modes (Node));
+
+         while Present (List_Node) loop
+            if Kind (List_Node) = K_Mode then
+               Success :=
+                 Enter_Name_In_Scope (Identifier (List_Node))
+                 and then Check_Property_Association_Names (List_Node)
+                 and then Success;
+            end if;
+
             List_Node := Next_Node (List_Node);
          end loop;
       end if;
@@ -793,6 +814,7 @@ package body Ocarina.Analyzer.AADL.Names is
          or else Kind (Node) = K_Subcomponent_Access
          or else Kind (Node) = K_Flow_Spec
          or else Kind (Node) = K_Mode
+         or else Kind (Node) = K_Mode_Transition
          or else Kind (Node) = K_Flow_Implementation
          or else Kind (Node) = K_End_To_End_Flow_Spec
          or else Kind (Node) = K_Flow_Implementation_Refinement

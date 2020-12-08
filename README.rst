@@ -1,16 +1,16 @@
-Ocarina AADL toolset  |docs| 
+Ocarina AADL toolset  |docs|
 ====================
 
 Latest release: |release|
 
-About: 
+About:
 ------
 
 Ocarina is an AADL model processor, it acts as a "compiler" for AADL models.
 
 As a front-end, it supports
 
-* AADLv2 language from `AS5506C standard <http://standards.sae.org/as5506c/>`_, 
+* AADLv2 language from `AS5506C standard <http://standards.sae.org/as5506c/>`_,
 * the Behavioral annex from `AS5506/1 standard <http://standards.sae.org/as5506/a/>`_
 * the ARINC653 and the EMV2 annexes from `AS5506/1A standard <http://standards.sae.org/as5506/1a/>`_
 
@@ -24,7 +24,7 @@ As a back-end, it supports
 
 It can be integrated with the `AADLib <https://github.com/OpenAADL/AADLib>`_ library of AADL components.
 
-It can also be embedded in AADL editors: in `OSATE <http://osate.org>`_ using the `OSATE2 plugin <https://github.com/OpenAADL/osate2-ocarina>`_, and `AADL Inspector <http://www.ellidiss.fr/public/wiki/wiki/inspector>`_
+It can also be embedded in AADL editors: in `OSATE <http://osate.org>`_ using the `OSATE2 plugin <https://github.com/OpenAADL/osate2-ocarina>`_, and `AADL Inspector <http://www.ellidiss.fr/public/wiki/wiki/inspector>`_ or advanced system processing suite like `TASTE by the European Space Agency <https://www.taste.tools>`_
 
 Installation:
 -------------
@@ -35,21 +35,16 @@ Q&A:
 ----
 
 +----------------------------------+---------------+
-| Build status for Linux and OS X  ||build-status| |
-+----------------------------------+---------------+
-| Build status for Windows         ||appveyor|     |
+| Build status GitHub actions      ||github|       |
 +----------------------------------+---------------+
 | Code coverage                    | |coverage|    |
 +----------------------------------+---------------+
 | CII Best practice                | |cii|         |
 +----------------------------------+---------------+
 
-.. |build-status| image:: https://travis-ci.org/OpenAADL/ocarina.svg?branch=master 
-  :target: https://travis-ci.org/OpenAADL/ocarina
+.. |github| image:: https://github.com/OpenAADL/ocarina/workflows/Ocarina/badge.svg
+  :target: https://github.com/OpenAADL/ocarina/actions?query=workflow%3AOcarina
 
-.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/github/openaadl/ocarina
-  :target: https://ci.appveyor.com/project/yoogx/ocarina
-  
 .. |docs| image:: https://readthedocs.org/projects/docs/badge/?version=latest
     :alt: Documentation Status
     :scale: 100%
@@ -62,7 +57,7 @@ Q&A:
 .. |release| image:: https://img.shields.io/github/release/OpenAADL/ocarina.svg
   :target: https://github.com/OpenAADL/ocarina/releases
   :alt: GitHub Releases
-  
+
 .. |cii| image:: https://bestpractices.coreinfrastructure.org/projects/1019/badge
   :target: https://bestpractices.coreinfrastructure.org/projects/1019
   :alt: CII Best practice

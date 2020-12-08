@@ -1,0 +1,156 @@
+name: Ocarina / GNAT Community Edition
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  linux:
+    name: ${{ matrix.os }} / ${{ matrix.tag }} ${{ matrix.year }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+        tag:
+          - community
+        year:
+          - 2020
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        with:
+          path: ./cached_gnat
+          key: ${{ runner.os }}-gnat-ce-2020
+
+      - name: Install toolchain
+        uses: ada-actions/toolchain@ce2020
+        with:
+          distrib: ${{ matrix.tag }}
+          target: native
+          community_year: ${{ matrix.year }}
+          install_dir: ./cached_gnat
+
+      - name: Set up ocarina-builder
+        run: >
+          git clone https://github.com/OpenAADL/ocarina-build.git
+
+      - name: Build
+        run: ( cd ocarina-build ; ./build_ocarina.sh --scenario=github )
+
+      - name: Coverage
+        uses: codecov/codecov-action@v1
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v2
+        with:
+          name: ocarina-linux
+          path: /home/runner/work/ocarina/ocarina/ocarina-build/ocarina/ocarina*linux*.tgz
+
+  macos:
+    name: ${{ matrix.os }} / ${{ matrix.tag }} ${{ matrix.year }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os:
+          - macos-latest
+        tag:
+          - community
+        year:
+          - 2020
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        with:
+          path: ./cached_gnat
+          key: ${{ runner.os }}-gnat-ce-2020
+
+      - name: Install toolchain
+        uses: ada-actions/toolchain@ce2020
+        with:
+          distrib: ${{ matrix.tag }}
+          target: native
+          community_year: ${{ matrix.year }}
+          install_dir: ./cached_gnat
+
+      - name: Install GNU tools
+        run: >
+         brew install automake autoconf coreutils
+
+      - name: Set up ocarina-builder
+        run: >
+          git clone https://github.com/OpenAADL/ocarina-build.git
+
+      - name: Build
+        run: ( cd ocarina-build ; ./build_ocarina.sh --scenario=github )
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v2
+        with:
+          name: ocarina-macos
+          path: /Users/runner/work/ocarina/ocarina/ocarina-build/ocarina/ocarina*darwin*.tgz
+
+  windows:
+    name: ${{ matrix.os }} / ${{ matrix.tag }} ${{ matrix.year }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os:
+          - windows-latest
+        tag:
+          - community
+        year:
+          - 2020
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        with:
+          path: ./cached_gnat
+          key: ${{ runner.os }}-gnat-ce-2020
+
+      - name: Install toolchain
+        uses: ada-actions/toolchain@ce2020
+        with:
+          distrib: ${{ matrix.tag }}
+          target: native
+          community_year: ${{ matrix.year }}
+          install_dir: ./cached_gnat
+
+      - name: Install GNU tools
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MSYS
+          install: autoconf automake git make zip
+
+      - name: Set up ocarina-builder
+        run: >
+          git clone https://github.com/OpenAADL/ocarina-build.git
+
+      - name: Debug
+        shell: bash
+        run: >
+          echo $PATH
+
+      - name: Build
+        shell: msys2 {0}
+        run: ( export PATH=/d/a/ocarina/ocarina/cached_gnat/gnat-2020-20200818-x86_64-windows-bin/bin:$PATH ; echo $PATH ; cd ocarina-build ; ./build_ocarina.sh --scenario=github )
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v2
+        with:
+          name: ocarina-windows
+          path: D:\a\ocarina\ocarina\ocarina-build\ocarina\ocarina*windows*.zip

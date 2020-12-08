@@ -6,7 +6,8 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---       Copyright (C) 2009 Telecom ParisTech, 2010-2018 ESA & ISAE.        --
+--                  Copyright (C) 2009 Telecom ParisTech,                   --
+--                 2010-2019 ESA & ISAE, 2019-2020 OpenAADL                 --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -24,8 +25,8 @@
 -- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
 -- <http://www.gnu.org/licenses/>.                                          --
 --                                                                          --
---                 Ocarina is maintained by the TASTE project               --
---                      (taste-users@lists.tuxfamily.org)                   --
+--                    Ocarina is maintained by OpenAADL team                --
+--                              (info@openaadl.org)                         --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -366,6 +367,7 @@ package body Ocarina.Builder.AADL.Properties is
          or else Kind (Container) = K_Component_Implementation
          or else Kind (Container) = K_Subcomponent
          or else Kind (Container) = K_Mode
+         or else Kind (Container) = K_Mode_Transition
          or else Kind (Container) = K_Flow_Spec
          or else Kind (Container) = K_Flow_Implementation
          or else Kind (Container) = K_Flow_Implementation_Refinement
@@ -441,6 +443,11 @@ package body Ocarina.Builder.AADL.Properties is
                    (Container,
                     Node);
             when K_Mode =>
+               Success :=
+                 Ocarina.Builder.AADL.Components.Modes.Add_Property_Association
+                   (Container,
+                    Node);
+            when K_Mode_Transition =>
                Success :=
                  Ocarina.Builder.AADL.Components.Modes.Add_Property_Association
                    (Container,
