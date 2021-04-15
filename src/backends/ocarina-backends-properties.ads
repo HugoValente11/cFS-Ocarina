@@ -568,6 +568,8 @@ package Ocarina.Backends.Properties is
       Platform_VxWorks,
       Platform_GNAT_Runtime,
       Platform_AIR,
+      Platform_ZynqZC706,
+      Platform_Zynq_QEMU,
       Platform_RPI,   -- For RPi xcompilation.
       Platform_MSP430_FREERTOS,
       Platform_AIR_IOP,
