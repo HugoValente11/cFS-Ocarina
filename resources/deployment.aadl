@@ -23,6 +23,7 @@ property set Deployment is
     Native_Compcert,          -- Native platforms using the Compcert compiler
     bench,                    -- Benchmark platform (native with instrumentation).
     GNAT_Runtime,             -- Use a GNAT Runtime, e.g. from the Ada_Drivers_Library
+    RPI,                      -- For RPi xcompilation.
     LEON_ORK,
     LEON_RTEMS,               -- LEON2 board or tsim-leon (RTEMS)
     LEON_RTEMS_POSIX,         -- LEON2 board or tsim-leon (RTEMS)
@@ -42,6 +43,7 @@ property set Deployment is
     WIN32,                    -- WIN32
     VXWORKS,                  -- VXWORKS
     FREERTOS,                 -- FREERTOS
+    MSP430_FREERTOS,          -- MSP430 board with FreeRTOS
     AIR,                      -- AIR Hypervisor, by GMV
     AIR_IOP,                  -- AIR IOP partition
     ZYNQZC706_RTEMS,          -- Zynq support, for CoRA-MBAD

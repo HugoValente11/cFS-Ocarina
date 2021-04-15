@@ -315,6 +315,7 @@ package body Ocarina.Backends.Properties is
    Platform_Native_Name                 : Name_Id;
    Platform_Bench_Name                  : Name_Id;
    Platform_Native_Compcert_Name        : Name_Id;
+   Platform_RPI_Name                    : Name_Id;
    Platform_LINUX32_Name                : Name_Id;
    Platform_Linux_DLL_Name              : Name_Id;
    Platform_Win32_Name                  : Name_Id;
@@ -2500,6 +2501,9 @@ package body Ocarina.Backends.Properties is
             return Platform_Native;
          elsif P_Name = Platform_Bench_Name then
             return Platform_Bench;
+
+         elsif P_Name = Platform_RPI_Name then
+            return Platform_RPI;
          elsif P_Name = Platform_Native_Compcert_Name then
             return Platform_Native_Compcert;
          elsif P_Name = Platform_LEON_RTEMS_POSIX_Name then
@@ -3093,6 +3097,7 @@ package body Ocarina.Backends.Properties is
       Platform_Native_Name              := Get_String_Name ("native");
       Platform_Bench_Name               := Get_String_Name ("bench");
       Platform_Native_Compcert_Name     := Get_String_Name ("native_compcert");
+      Platform_RPI_Name                 := Get_String_Name ("rpi");
       Platform_LINUX32_Name             := Get_String_Name ("linux32");
       Platform_LINUX_DLL_Name           := Get_String_Name ("linux_dll");
       Platform_Win32_Name               := Get_String_Name ("win32");
