@@ -572,6 +572,7 @@ package Ocarina.Backends.Properties is
       Platform_Zynq_QEMU,
       Platform_RPI,   -- For RPi xcompilation.
       Platform_MSP430_FREERTOS,
+      Platform_GENERIC_LINUX,
       Platform_AIR_IOP,
       Platform_None); --  Unspecified
 

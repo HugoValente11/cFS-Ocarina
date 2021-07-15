@@ -175,6 +175,7 @@ package body Ocarina.Backends.PO_HI_Ada is
            Platform_LINUX32   |
            Platform_LINUX64   |
            Platform_WIN32     |
+           Platform_GENERIC_LINUX |
            Platform_None      =>
             Change_If_Empty (String_Ptr (Target_Prefix), "");
             Target := new String'("NATIVE");
@@ -205,7 +206,7 @@ package body Ocarina.Backends.PO_HI_Ada is
 
          when others =>
             raise Program_Error
-              with "Unsupported platform: " & Execution_Platform'Img;
+              with "Unsupported platform X: " & Execution_Platform'Img;
       end case;
 
       if Execution_Platform /= Platform_LEON_RTEMS
