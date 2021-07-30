@@ -206,7 +206,7 @@ package body Ocarina.Backends.PO_HI_Ada is
 
          when others =>
             raise Program_Error
-              with "Unsupported platform X: " & Execution_Platform'Img;
+              with "Unsupported platform: " & Execution_Platform'Img;
       end case;
 
       if Execution_Platform /= Platform_LEON_RTEMS
