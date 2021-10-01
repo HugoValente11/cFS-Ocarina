@@ -2411,6 +2411,7 @@ package body Ocarina.Backends.PO_HI_C.Deployment is
                     Platform_None                   |
                     Platform_RPI                    |
                     Platform_MSP430_FREERTOS        |
+                    Platform_GENERIC_LINUX          |
                     Platform_LINUX32_XENOMAI_NATIVE |
                     Platform_Native_Compcert        |
                     Platform_LINUX32_XENOMAI_POSIX  |
