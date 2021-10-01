@@ -49,7 +49,7 @@ property set Deployment is
     ZYNQZC706_RTEMS,          -- Zynq support, for CoRA-MBAD
     ZYNQ_RTEMS_QEMU,          -- Zynq support, for CoRA-MBAD, for QEMU
     MSP430_FREERTOS,          -- MSP430 board with FreeRTOS
-	GENERIC_LINUX         -- Linux generic
+    GENERIC_LINUX         -- Linux generic
     );
   --  Supported platforms
 
