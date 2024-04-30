@@ -6,7 +6,8 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2011-2019 ESA & ISAE, 2019-2020 OpenAADL           --
+--                   Copyright (C) 2011-2019 ESA & ISAE,                    --
+--                     2019-2021 OpenAADL, 2021 NVIDIA                      --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -36,11 +37,14 @@ with Ocarina.AADL_Values;
 with Ocarina.ME_AADL;
 with Ocarina.ME_AADL.AADL_Instances.Nodes;
 with Ocarina.ME_AADL.AADL_Tree.Nodes;
+with Ocarina.ME_AADL.AADL_Tree.Nutils;
+with Ocarina.ME_AADL.AADL_Tree.Entities;
 with Ocarina.ME_AADL.AADL_Instances.Entities;
 with Ocarina.Backends.XML_Tree.Nodes;
 with Ocarina.Backends.XML_Tree.Nutils;
 with Ocarina.Backends.AADL_XML.Mapping;
 with Ocarina.Backends.Utils;
+with Ocarina.ME_AADL.AADL_Tree.Entities.Properties;
 
 package body Ocarina.Backends.AADL_XML.Main is
 
@@ -50,7 +54,10 @@ package body Ocarina.Backends.AADL_XML.Main is
    use Ocarina.Backends.XML_Tree.Nutils;
    use Ocarina.Backends.AADL_XML.Mapping;
    use Ocarina.Backends.Utils;
+   use Ocarina.ME_AADL.AADL_Tree.Entities.Properties;
 
+   package AIN renames Ocarina.ME_AADL.AADL_Instances.Nodes;
+   package ATE renames Ocarina.ME_AADL.AADL_Tree.Entities;
    package ATN renames Ocarina.ME_AADL.AADL_Tree.Nodes;
    package XTN renames Ocarina.Backends.XML_Tree.Nodes;
    use type ATN.Node_Kind;
@@ -59,6 +66,12 @@ package body Ocarina.Backends.AADL_XML.Main is
    procedure Visit_Subcomponents_Of is new Visit_Subcomponents_Of_G (Visit);
 
    function Map_Component (E : Node_Id) return Node_Id;
+   procedure Visit_Connection_Entity
+     (Entity_XML_Node : Node_Id;
+      Entity_Node     : Node_Id);
+   function Visit_Properties (E : Node_Id) return Node_Id;
+   function Visit_Property_Value
+     (AADL_Property_Value : Node_Id) return Node_Id;
 
    -------------------
    -- Map_Component --
@@ -111,7 +124,8 @@ package body Ocarina.Backends.AADL_XML.Main is
          Append_Node_To_List
            (Make_Assignement
               (Make_Defining_Identifier (Get_String_Name ("identifier")),
-               Make_Defining_Identifier (Display_Name (Identifier (E)))),
+               Make_Defining_Identifier
+                  (Normalize_Name (Name (Identifier (E))))),
             XTN.Items (N));
       end if;
 
@@ -121,6 +135,15 @@ package body Ocarina.Backends.AADL_XML.Main is
       Append_Node_To_List
         (Make_Defining_Identifier (Display_Name (Identifier (E))),
          XTN.Subitems (Classifier_Node));
+
+      --  Add namespace attribute to the classifier node
+      Append_Node_To_List
+        (Make_Assignement
+           (Make_Defining_Identifier (Get_String_Name ("namespace")),
+            Make_Defining_Identifier
+              (Display_Name (Identifier (Namespace (E))))),
+         XTN.Items (Classifier_Node));
+
       Append_Node_To_List (Classifier_Node, XTN.Subitems (N));
 
       return N;
@@ -160,18 +183,18 @@ package body Ocarina.Backends.AADL_XML.Main is
       Old_XML_Node        : Node_Id;
       Subcomponents_Node  : Node_Id;
       Features_Node       : Node_Id;
-      Properties_Node     : Node_Id;
       Feature_Node        : Node_Id;
       F                   : Node_Id;
       P                   : Node_Id;
       U                   : Node_Id;
-      Property_Node       : Node_Id;
       Components_Node     : Node_Id;
-      Property_Value_Node : Node_Id;
-      AADL_Property_Value : Node_Id;
+      Connections_Node    : Node_Id;
+      Connection_Node     : Node_Id;
 
    begin
-      if Category = CC_System then
+      if Category = CC_System and then
+        E = Root_System_Node
+      then
          P := Map_HI_Node (E);
          Push_Entity (P);
 
@@ -185,7 +208,8 @@ package body Ocarina.Backends.AADL_XML.Main is
               (Make_Assignement
                  (Make_Defining_Identifier (Get_String_Name ("root_system")),
                   Make_Defining_Identifier
-                    (Display_Name (Identifier (Root_System_Node)))),
+                    (Normalize_Name
+                       (Display_Name (Identifier (Root_System_Node))))),
                XTN.Items (AADL_XML_Node));
 
             Append_Node_To_List
@@ -282,19 +306,21 @@ package body Ocarina.Backends.AADL_XML.Main is
                Append_Node_To_List (Type_Node, XTN.Subitems (Feature_Node));
             end;
 
-            --  Classifier
+            --  Corresponding instance
 
             declare
-               Classifier_Node : Node_Id;
+               Corresponding_Instance_Node : Node_Id;
             begin
-               Classifier_Node := Make_XML_Node ("classifier");
+               Corresponding_Instance_Node :=
+                  Make_XML_Node ("corresponding_instance");
                Append_Node_To_List
-                 (Make_Defining_Identifier
-                    (Display_Name (Identifier (Corresponding_Instance (F)))),
-                  XTN.Subitems (Classifier_Node));
-               Append_Node_To_List
-                 (Classifier_Node,
+                 (Corresponding_Instance_Node,
                   XTN.Subitems (Feature_Node));
+
+               Old_XML_Node     := Current_XML_Node;
+               Current_XML_Node := Corresponding_Instance_Node;
+               Visit (Corresponding_Instance (F));
+               Current_XML_Node := Old_XML_Node;
             end;
 
             Append_Node_To_List (Feature_Node, XTN.Subitems (Features_Node));
@@ -314,8 +340,170 @@ package body Ocarina.Backends.AADL_XML.Main is
 
       --  Properties
 
+      Append_Node_To_List (Visit_Properties (E), XTN.Subitems (N));
+
+      --  Connections
+
+      if Present (Connections (E)) then
+
+         Connections_Node := Make_XML_Node ("connections");
+         Append_Node_To_List (Connections_Node, XTN.Subitems (N));
+
+         F := First_Node (Connections (E));
+         while Present (F) loop
+            Connection_Node := Make_XML_Node ("connection");
+
+            --  Identifier
+
+            Append_Node_To_List
+              (Make_Assignement
+                 (Make_Defining_Identifier (Get_String_Name ("name")),
+                  Make_Defining_Identifier (Display_Name (Identifier (F)))),
+               XTN.Items (Connection_Node));
+
+            --  Connection type
+
+            if Present (Associated_Type (F)) then
+
+               declare
+                  Type_String     : Name_Id;
+
+                  Map_Connection_Type : constant array
+                    (Ocarina.ME_AADL.Connection_Type'Range) of Name_Id :=
+                     --  AADL_V1
+                     (CT_Event_Data => Get_String_Name ("event_data"),
+                      CT_Data_Delayed => Get_String_Name ("data_delayed"),
+                      --  AADL_V1 and AADL_V2
+                      CT_Data => Get_String_Name ("data"),
+                      CT_Event => Get_String_Name ("event"),
+                      CT_Feature_Group => Get_String_Name ("feature_group"),
+                      CT_Parameter => Get_String_Name ("parameter"),
+                      CT_Access_Bus => Get_String_Name ("access_bus"),
+                      CT_Access_Data => Get_String_Name ("access_data"),
+                      CT_Access_Subprogram
+                        => Get_String_Name ("access_subprogram"),
+                      --  AADL_V2
+                      CT_Access_Virtual_Bus
+                        => Get_String_Name ("access_virtual_bus"),
+                      CT_Feature => Get_String_Name ("feature"),
+                      CT_Port_Connection =>
+                        Get_String_Name ("port_connection"),
+                      CT_Access_Subprogram_Group =>
+                        Get_String_Name ("access_subprogram_group"),
+                      CT_Access => Get_String_Name ("access"),
+                      CT_Error => Get_String_Name ("error"));
+
+               begin
+                  Type_String := Map_Connection_Type
+                      (Get_Category_Of_Connection (F));
+
+                  Append_Node_To_List
+                    (Make_Assignement
+                       (Make_Defining_Identifier (Get_String_Name ("type")),
+                        Make_Defining_Identifier (Type_String)),
+                     XTN.Items (Connection_Node));
+               end;
+            end if;
+
+            --  Source and Destination
+
+            declare
+               Src_Node       : Node_Id;
+               Dst_Node       : Node_Id;
+            begin
+               --  Source
+
+               Src_Node := Make_XML_Node ("src");
+               Visit_Connection_Entity (Src_Node, Source (F));
+               Append_Node_To_List (Src_Node, XTN.Subitems (Connection_Node));
+
+               --  Destination
+
+               Dst_Node := Make_XML_Node ("dst");
+               Visit_Connection_Entity (Dst_Node, Destination (F));
+               Append_Node_To_List (Dst_Node, XTN.Subitems (Connection_Node));
+            end;
+
+            --  Properties of the connection
+
+            Append_Node_To_List
+              (Visit_Properties (F), XTN.Subitems (Connection_Node));
+
+            Append_Node_To_List
+              (Connection_Node, XTN.Subitems (Connections_Node));
+            F := Next_Node (F);
+         end loop;
+      end if;
+
+      if Category = CC_System and then
+        E = Root_System_Node
+      then
+         Pop_Entity;
+         Pop_Entity; --  A
+      end if;
+   end Visit_Component;
+
+   -----------------------------
+   -- Visit_Connection_Entity --
+   -----------------------------
+
+   procedure Visit_Connection_Entity
+     (Entity_XML_Node : Node_Id;
+      Entity_Node     : Node_Id)
+   is
+      pragma Assert
+        (Kind (Entity_Node) = K_Entity_Reference_Instance);
+   begin
+      if Present (Next_Node (First_Node (Path (Entity_Node))))
+      then
+         --  The connection port is in a subcomponent
+
+         Append_Node_To_List
+           (Make_Assignement
+              (Make_Defining_Identifier (Get_String_Name ("component")),
+               Make_Defining_Identifier
+                 (Display_Name
+                    (Identifier
+                       (Item (First_Node (Path (Entity_Node))))))),
+            XTN.Items (Entity_XML_Node));
+
+         Append_Node_To_List
+           (Make_Assignement
+              (Make_Defining_Identifier (Get_String_Name ("feature")),
+               Make_Defining_Identifier
+                 (Name
+                    (Identifier
+                       (Item (Next_Node (First_Node (Path (Entity_Node)))))))),
+            XTN.Items (Entity_XML_Node));
+      else
+         --  The connection port is in the current component
+
+         Append_Node_To_List
+           (Make_Assignement
+              (Make_Defining_Identifier (Get_String_Name ("feature")),
+               Make_Defining_Identifier
+                 (Display_Name
+                    (Identifier
+                       (Item (First_Node (Path (Entity_Node))))))),
+            XTN.Items (Entity_XML_Node));
+      end if;
+   end Visit_Connection_Entity;
+
+   ----------------------
+   -- Visit_Properties --
+   ----------------------
+
+   function Visit_Properties
+     (E : Node_Id) return Node_Id
+   is
+      Properties_Node                 : Node_Id;
+      F                               : Node_Id;
+      Property_Node                   : Node_Id;
+      Property_Value_Node             : Node_Id;
+      AADL_Property_Value             : Node_Id;
+      Property_Association_Value_Node : Node_Id;
+   begin
       Properties_Node := Make_XML_Node ("properties");
-      Append_Node_To_List (Properties_Node, XTN.Subitems (N));
 
       if Present (Properties (E)) then
          F := First_Node (Properties (E));
@@ -337,209 +525,34 @@ package body Ocarina.Backends.AADL_XML.Main is
               (Property_Value_Node,
                XTN.Subitems (Property_Node));
 
-            AADL_Property_Value :=
-              Get_Value_Of_Property_Association (E, Name (Identifier (F)));
+            Property_Association_Value_Node :=
+              Property_Association_Value
+                (Get_Property_Association
+                   (E,
+                    Name (Identifier (F))));
 
-            if Present (AADL_Property_Value)
-              and then ATN.Kind (AADL_Property_Value) = ATN.K_Signed_AADLNumber
-              and then Present (ATN.Unit_Identifier (AADL_Property_Value))
+            if ATN.Single_Value (Property_Association_Value_Node) = No_Node
             then
-               --  This property value denotes a property with a unit
-               --  identifier.
+               --  Wrap Multi_Value, a List_Id, in a K_Property_List_Value
+               --  node for further processing
 
-               declare
-                  Unit_Node : Node_Id;
-               begin
-                  Unit_Node := Make_XML_Node ("unit");
-                  Append_Node_To_List
-                    (Unit_Node,
-                     XTN.Subitems (Property_Value_Node));
+               AADL_Property_Value :=
+                 Ocarina.ME_AADL.AADL_Tree.Nutils.New_Node
+                   (ATN.K_Property_List_Value,
+                    ATN.Loc (Property_Association_Value_Node));
 
-                  Append_Node_To_List
-                    (Make_Assignement
-                       (Make_Defining_Identifier (Get_String_Name ("value")),
-                        Make_Defining_Identifier
-                          (Get_String_Name
-                             (Ocarina.AADL_Values.Image
-                                (ATN.Value
-                                   (ATN.Number_Value
-                                      (AADL_Property_Value)))))),
-                     XTN.Items (Unit_Node));
+               ATN.Set_Property_Values
+                 (AADL_Property_Value,
+                  ATN.Multi_Value (Property_Association_Value_Node));
 
-                  Append_Node_To_List
-                    (Make_Assignement
-                       (Make_Defining_Identifier (Get_String_Name ("unit")),
-                        Make_Defining_Identifier
-                          (ATN.Display_Name
-                             (ATN.Unit_Identifier (AADL_Property_Value)))),
-                     XTN.Items (Unit_Node));
-               end;
-
-            elsif Present (AADL_Property_Value)
-              and then ATN.Kind (AADL_Property_Value) = ATN.K_Signed_AADLNumber
-              and then
-              (not Present (ATN.Unit_Identifier (AADL_Property_Value)))
-            then
-               --  This property value denotes a property without unit
-
-               declare
-                  Unit_Node : Node_Id;
-               begin
-                  Unit_Node := Make_XML_Node ("value");
-                  Append_Node_To_List
-                    (Unit_Node,
-                     XTN.Subitems (Property_Value_Node));
-
-                  Append_Node_To_List
-                    (Make_Assignement
-                       (Make_Defining_Identifier (Get_String_Name ("value")),
-                        Make_Defining_Identifier
-                          (Get_String_Name
-                             (Ocarina.AADL_Values.Image
-                                (ATN.Value
-                                   (ATN.Number_Value
-                                      (AADL_Property_Value)))))),
-                     XTN.Items (Unit_Node));
-               end;
-
-            elsif Present (AADL_Property_Value)
-              and then ATN.Kind (AADL_Property_Value) = ATN.K_Literal
-            then
-               --  This property value denotes a literal
-
-               declare
-                  Unit_Node : Node_Id;
-               begin
-                  Unit_Node := Make_XML_Node ("value");
-                  Append_Node_To_List
-                    (Unit_Node,
-                     XTN.Subitems (Property_Value_Node));
-
-                  Append_Node_To_List
-                    (Make_Assignement
-                       (Make_Defining_Identifier (Get_String_Name ("value")),
-                        Make_Defining_Identifier
-                          (Get_String_Name
-                             (Ocarina.AADL_Values.Image
-                                (ATN.Value (AADL_Property_Value),
-                                 Quoted => False)))),
-                     XTN.Items (Unit_Node));
-               end;
-
-            elsif Present (AADL_Property_Value)
-              and then ATN.Kind (AADL_Property_Value) = ATN.K_Reference_Term
-            then
-               --  This property value denotes a reference term
-
-               declare
-                  Unit_Node : Node_Id;
-               begin
-                  Unit_Node := Make_XML_Node ("reference");
-                  Append_Node_To_List
-                    (Unit_Node,
-                     XTN.Subitems (Property_Value_Node));
-
-                  Append_Node_To_List
-                    (Make_Assignement
-                       (Make_Defining_Identifier (Get_String_Name ("value")),
-                        Make_Defining_Identifier
-                          (ATN.Display_Name
-                             (ATN.First_Node --  XXX must iterate
-                                (ATN.List_Items
-                                   (ATN.Reference_Term
-                                      (AADL_Property_Value)))))),
-                     XTN.Items (Unit_Node));
-               end;
-
-            elsif Present (AADL_Property_Value)
-              and then ATN.Kind (AADL_Property_Value) = ATN.K_Enumeration_Term
-            then
-               --  This property value denotes an enumeration term
-
-               declare
-                  Unit_Node : Node_Id;
-               begin
-                  Unit_Node := Make_XML_Node ("value");
-                  Append_Node_To_List
-                    (Unit_Node,
-                     XTN.Subitems (Property_Value_Node));
-
-                  Append_Node_To_List
-                    (Make_Assignement
-                       (Make_Defining_Identifier (Get_String_Name ("value")),
-                        Make_Defining_Identifier
-                          (ATN.Display_Name
-                             (ATN.Identifier (AADL_Property_Value)))),
-                     XTN.Items (Unit_Node));
-               end;
-
-            elsif Present (AADL_Property_Value)
-              and then ATN.Kind (AADL_Property_Value) = ATN.K_Number_Range_Term
-            then
-               --  This property value denotes a number range term
-
-               declare
-                  Unit_Node : Node_Id;
-               begin
-                  Unit_Node := Make_XML_Node ("range");
-                  Append_Node_To_List
-                    (Unit_Node,
-                     XTN.Subitems (Property_Value_Node));
-
-                  Append_Node_To_List
-                    (Make_Assignement
-                       (Make_Defining_Identifier
-                          (Get_String_Name ("value_low")),
-                        Make_Defining_Identifier
-                          (Get_String_Name
-                             (Ocarina.AADL_Values.Image
-                                (ATN.Value
-                                   (ATN.Number_Value
-                                      (ATN.Lower_Bound
-                                         (AADL_Property_Value))))))),
-                     XTN.Items (Unit_Node));
-
-                  Append_Node_To_List
-                    (Make_Assignement
-                       (Make_Defining_Identifier
-                          (Get_String_Name ("value_high")),
-                        Make_Defining_Identifier
-                          (Get_String_Name
-                             (Ocarina.AADL_Values.Image
-                                (ATN.Value
-                                   (ATN.Number_Value
-                                      (ATN.Upper_Bound
-                                         (AADL_Property_Value))))))),
-                     XTN.Items (Unit_Node));
-
-                  if Present
-                      (ATN.Unit_Identifier
-                         (ATN.Lower_Bound (AADL_Property_Value)))
-                  then
-                     Append_Node_To_List
-                       (Make_Assignement
-                          (Make_Defining_Identifier (Get_String_Name ("unit")),
-                           Make_Defining_Identifier
-                             (ATN.Display_Name
-                                (ATN.Unit_Identifier
-                                   (ATN.Lower_Bound (AADL_Property_Value))))),
-                        XTN.Items (Unit_Node));
-                  end if;
-               end;
-
-            elsif Present (AADL_Property_Value) then
-               --  XXX ICE
-
-               declare
-                  Unit_Node : Node_Id;
-               begin
-                  Unit_Node :=
-                    Make_XML_Node (ATN.Kind (AADL_Property_Value)'Img);
-                  Append_Node_To_List
-                    (Unit_Node,
-                     XTN.Subitems (Property_Value_Node));
-               end;
+            else
+               AADL_Property_Value :=
+                 Compute_Property_Value (Property_Association_Value_Node);
             end if;
+
+            Append_Node_To_List
+              (Visit_Property_Value (AADL_Property_Value),
+               XTN.Subitems (Property_Value_Node));
 
             Append_Node_To_List
               (Property_Node,
@@ -548,10 +561,320 @@ package body Ocarina.Backends.AADL_XML.Main is
          end loop;
       end if;
 
-      if Category = CC_System then
-         Pop_Entity;
-         Pop_Entity; --  A
+      return Properties_Node;
+   end Visit_Properties;
+
+   --------------------------
+   -- Visit_Property_Value --
+   --------------------------
+
+   function Visit_Property_Value
+     (AADL_Property_Value : Node_Id) return Node_Id
+   is
+      List_Node  : Node_Id;
+      Value_Node : Node_Id;
+
+   begin
+      if Present (AADL_Property_Value)
+        and then ATN.Kind (AADL_Property_Value) = ATN.K_Signed_AADLNumber
+      then
+         --  This property value denotes a number property which can
+         --  be aadlinteger or aadlreal with or without an unit
+
+         declare
+            PV_Type : constant Property_Type :=
+               Get_Type_Of_Property_Value (AADL_Property_Value, True);
+         begin
+            if PV_Type = PT_Integer and then
+               No (ATN.Unit_Identifier (AADL_Property_Value))
+            then
+               Value_Node := Make_XML_Node ("integer");
+            elsif
+               PV_Type = PT_Integer and then
+               Present (ATN.Unit_Identifier (AADL_Property_Value))
+            then
+               Value_Node := Make_XML_Node ("integer_unit");
+            elsif PV_Type = PT_Float and then
+               No (ATN.Unit_Identifier (AADL_Property_Value))
+            then
+               Value_Node := Make_XML_Node ("real");
+            elsif PV_Type = PT_Float and then
+               Present (ATN.Unit_Identifier (AADL_Property_Value))
+            then
+               Value_Node := Make_XML_Node ("real_unit");
+            end if;
+         end;
+
+         Append_Node_To_List
+           (Make_Assignement
+              (Make_Defining_Identifier (Get_String_Name ("value")),
+               Make_Defining_Identifier
+                 (Get_String_Name
+                    (Ocarina.AADL_Values.Image
+                       (ATN.Value
+                          (ATN.Number_Value
+                             (AADL_Property_Value)))))),
+            XTN.Items (Value_Node));
+
+         if Present (ATN.Unit_Identifier (AADL_Property_Value)) then
+            Append_Node_To_List
+              (Make_Assignement
+                 (Make_Defining_Identifier (Get_String_Name ("unit")),
+                  Make_Defining_Identifier
+                    (ATN.Display_Name
+                       (ATN.Unit_Identifier (AADL_Property_Value)))),
+            XTN.Items (Value_Node));
+         end if;
+
+      elsif Present (AADL_Property_Value)
+        and then ATN.Kind (AADL_Property_Value) = ATN.K_Literal
+      then
+         --  This property value denotes a literal term
+         declare
+            PV_Type : constant Property_Type :=
+               Get_Type_Of_Property_Value (AADL_Property_Value, True);
+         begin
+            if PV_Type = PT_Boolean then
+               Value_Node := Make_XML_Node ("boolean");
+            elsif PV_Type = PT_String then
+               Value_Node := Make_XML_Node ("string");
+            end if;
+         end;
+
+         Append_Node_To_List
+           (Make_Assignement
+              (Make_Defining_Identifier (Get_String_Name ("value")),
+               Make_Defining_Identifier
+                 (Get_String_Name
+                    (Ocarina.AADL_Values.Image
+                       (ATN.Value (AADL_Property_Value),
+                        Quoted => False)))),
+            XTN.Items (Value_Node));
+
+      elsif Present (AADL_Property_Value)
+        and then ATN.Kind (AADL_Property_Value) = ATN.K_Reference_Term
+      then
+         --  This property value denotes a reference term
+
+         declare
+            Full_Reference_Name : Name_Id;
+            Is_First_Node       : Boolean := TRUE;
+         begin
+            Value_Node := Make_XML_Node ("reference");
+
+            List_Node :=
+              ATN.First_Node
+                (ATN.List_Items
+                  (ATN.Reference_Term
+                     (AADL_Property_Value)));
+
+            while Present (List_Node) loop
+               if Is_First_Node then
+                  Full_Reference_Name := ATN.Display_Name (List_Node);
+                  Is_First_Node := FALSE;
+
+               else
+                  Full_Reference_Name :=
+                    Add_Suffix_To_Name
+                      (".", Full_Reference_Name);
+
+                  Full_Reference_Name :=
+                    Add_Suffix_To_Name
+                      (Get_Name_String (ATN.Display_Name (List_Node)),
+                       Full_Reference_Name);
+               end if;
+
+               List_Node := ATN.Next_Node (List_Node);
+            end loop;
+
+            Append_Node_To_List
+              (Make_Assignement
+                 (Make_Defining_Identifier (Get_String_Name ("value")),
+                  Make_Defining_Identifier (Full_Reference_Name)),
+               XTN.Items (Value_Node));
+         end;
+
+      elsif Present (AADL_Property_Value)
+        and then ATN.Kind (AADL_Property_Value) =
+          ATN.K_Component_Classifier_Term
+      then
+         --  This property value denotes a classifier term
+
+         Value_Node := Make_XML_Node ("classifier");
+
+         Append_Node_To_List
+           (Make_Assignement
+              (Make_Defining_Identifier (Get_String_Name ("value")),
+                 Make_Defining_Identifier
+                   (AIN.Display_Name
+                      (AIN.Identifier
+                         (ATE.Get_Referenced_Entity (AADL_Property_Value))))),
+               XTN.Items (Value_Node));
+
+      elsif Present (AADL_Property_Value)
+        and then ATN.Kind (AADL_Property_Value) = ATN.K_Enumeration_Term
+      then
+         --  This property value denotes an enumeration term
+
+         Value_Node := Make_XML_Node ("enumeration");
+
+         Append_Node_To_List
+           (Make_Assignement
+              (Make_Defining_Identifier (Get_String_Name ("value")),
+               Make_Defining_Identifier
+                 (ATN.Display_Name
+                    (ATN.Identifier (AADL_Property_Value)))),
+            XTN.Items (Value_Node));
+
+      elsif Present (AADL_Property_Value)
+        and then ATN.Kind (AADL_Property_Value) = ATN.K_Number_Range_Term
+      then
+         --  This property value denotes a number range term
+
+         declare
+            use Ocarina.AADL_Values;
+            V : constant Value_Type := Get_Value_Type (ATN.Value
+               (ATN.Number_Value (ATN.Lower_Bound (AADL_Property_Value))));
+         begin
+            if V.T = LT_Real then
+               if Present
+                   (ATN.Unit_Identifier
+                      (ATN.Lower_Bound (AADL_Property_Value)))
+               then
+                  Value_Node := Make_XML_Node ("real_range_unit");
+               else
+                  Value_Node := Make_XML_Node ("real_range");
+               end if;
+
+            elsif V.T = LT_Integer then
+               if Present
+                   (ATN.Unit_Identifier
+                      (ATN.Lower_Bound (AADL_Property_Value)))
+               then
+                  Value_Node := Make_XML_Node ("integer_range_unit");
+               else
+                  Value_Node := Make_XML_Node ("integer_range");
+               end if;
+            end if;
+         end;
+
+         Append_Node_To_List
+           (Make_Assignement
+              (Make_Defining_Identifier
+                 (Get_String_Name ("value_low")),
+               Make_Defining_Identifier
+                 (Get_String_Name
+                    (Ocarina.AADL_Values.Image
+                       (ATN.Value
+                          (ATN.Number_Value
+                             (ATN.Lower_Bound
+                                (AADL_Property_Value))))))),
+            XTN.Items (Value_Node));
+
+         Append_Node_To_List
+           (Make_Assignement
+              (Make_Defining_Identifier
+                 (Get_String_Name ("value_high")),
+               Make_Defining_Identifier
+                 (Get_String_Name
+                    (Ocarina.AADL_Values.Image
+                       (ATN.Value
+                          (ATN.Number_Value
+                             (ATN.Upper_Bound
+                                (AADL_Property_Value))))))),
+            XTN.Items (Value_Node));
+
+         if Present
+            (ATN.Unit_Identifier
+               (ATN.Lower_Bound (AADL_Property_Value)))
+         then
+            Append_Node_To_List
+              (Make_Assignement
+                 (Make_Defining_Identifier (Get_String_Name ("unit_low")),
+                  Make_Defining_Identifier
+                    (ATN.Display_Name
+                       (ATN.Unit_Identifier
+                          (ATN.Lower_Bound (AADL_Property_Value))))),
+               XTN.Items (Value_Node));
+
+            Append_Node_To_List
+              (Make_Assignement
+                 (Make_Defining_Identifier (Get_String_Name ("unit_high")),
+                  Make_Defining_Identifier
+                    (ATN.Display_Name
+                       (ATN.Unit_Identifier
+                          (ATN.Upper_Bound (AADL_Property_Value))))),
+               XTN.Items (Value_Node));
+
+         end if;
+
+      elsif Present (AADL_Property_Value)
+        and then ATN.Kind (AADL_Property_Value) = ATN.K_Record_Term
+      then
+         --  This property value denotes a record term
+
+         Value_Node := Make_XML_Node ("record");
+         List_Node :=
+           ATN.First_Node (ATN.List_Items (AADL_Property_Value));
+
+         declare
+            Record_Field_Node       : Node_Id;
+         begin
+            while Present (List_Node) loop
+
+               if ATN.Kind (List_Node) = ATN.K_Record_Term_Element then
+
+                  Record_Field_Node := Make_XML_Node ("record_field");
+
+                  Append_Node_To_List
+                    (Record_Field_Node,
+                     XTN.Subitems (Value_Node));
+
+                  Append_Node_To_List
+                    (Make_Assignement
+                       (Make_Defining_Identifier (Get_String_Name ("name")),
+                        Make_Defining_Identifier
+                          (ATN.Display_Name (ATN.Identifier (List_Node)))),
+                     XTN.Items (Record_Field_Node));
+
+                  --  Visit record field's value
+
+                  Append_Node_To_List
+                    (Visit_Property_Value
+                       (ATN.Property_Expression (List_Node)),
+                     XTN.Subitems (Record_Field_Node));
+               end if;
+
+               List_Node := ATN.Next_Node (List_Node);
+            end loop;
+         end;
+
+      elsif Present (AADL_Property_Value)
+        and then ATN.Kind (AADL_Property_Value) = ATN.K_Property_List_Value
+      then
+         --  This property value denotes a list term
+
+         Value_Node := Make_XML_Node ("list");
+         List_Node :=
+           ATN.First_Node (ATN.Property_Values (AADL_Property_Value));
+
+         while Present (List_Node) loop
+            Append_Node_To_List
+              (Visit_Property_Value (List_Node),
+               XTN.Subitems (Value_Node));
+            List_Node := ATN.Next_Node (List_Node);
+         end loop;
+
+      elsif Present (AADL_Property_Value) then
+         --  XXX ICE
+
+         Value_Node :=
+           Make_XML_Node (ATN.Kind (AADL_Property_Value)'Img);
+
       end if;
-   end Visit_Component;
+
+      return Value_Node;
+
+   end Visit_Property_Value;
 
 end Ocarina.Backends.AADL_XML.Main;

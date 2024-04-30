@@ -7,7 +7,7 @@
 --                                 B o d y                                  --
 --                                                                          --
 --               Copyright (C) 2008-2009 Telecom ParisTech,                 --
---                 2010-2019 ESA & ISAE, 2019-2020 OpenAADL                 --
+--         2010-2019 ESA & ISAE, 2019-2021 OpenAADL, 2021 NVIDIA            --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -63,6 +63,8 @@ package body Ocarina.FE_AADL.Parser.Properties is
 
    function P_Property_Value (Container : Node_Id) return Node_Id;
 
+   function Is_Boolean_Or_Record_Term return Boolean;
+
    ----------------------
    -- P_Property_Value --
    ----------------------
@@ -70,7 +72,6 @@ package body Ocarina.FE_AADL.Parser.Properties is
    --  property_value ::= single_property_value | property_list_value
 
    function P_Property_Value (Container : Node_Id) return Node_Id is
-      pragma Unreferenced (Container);
       use Lexer;
       use Ocarina.ME_AADL.Tokens;
       use Ocarina.ME_AADL.AADL_Tree.Nodes;
@@ -93,31 +94,57 @@ package body Ocarina.FE_AADL.Parser.Properties is
 
          if Token = T_Right_Parenthesis then
             --  Property_List_Value is empty
-            Prop_Value := Node_Id (New_List (K_List_Id, Loc));
-            Set_Kind (Prop_Value, K_Property_List_Value);
-            Set_First_Node (List_Id (Prop_Value), No_Node);
-            Set_Last_Node (List_Id (Prop_Value), No_Node);
+            Prop_Value := New_Node (K_Property_List_Value, Loc);
+            Set_Property_Values (Prop_Value, New_List (K_List_Id, Loc));
+            Set_First_Node (Property_Values (Prop_Value), No_Node);
+            Set_Last_Node (Property_Values (Prop_Value), No_Node);
+
+         elsif Token = T_Left_Parenthesis and then
+            not Is_Boolean_Or_Record_Term
+         then
+            --  Parse nested lists
+            Restore_Lexer (Loc);
+
+            declare
+               Item  : Node_Id; --  a nested list
+               Items : List_Id; --  nested lists
+            begin
+               Items := New_List (K_List_Id, Loc);
+               loop
+                  Item := P_Property_Value (Container);
+                  if Present (Item) then
+                     Append_Node_To_List (Item, Items);
+                  end if;
+
+                  Scan_Token;
+                  if Token = T_Right_Parenthesis then
+                     exit;
+                  end if;
+               end loop;
+
+               Prop_Value := New_Node (K_Property_List_Value, Loc);
+               Set_Property_Values (Prop_Value, Items);
+            end;
+
          else
             Restore_Lexer (Loc);
 
-            --  Prop_Value :=
-            --  Node_Id (P_Items_List (P_Property_Value'Access,
+            Prop_Value := New_Node (K_Property_List_Value, Loc);
+            Set_Property_Values
+              (Prop_Value,
+               P_Items_List
+                 (P_Property_Expression'Access,
+                  No_Node,
+                  T_Comma,
+                  T_Right_Parenthesis,
+                  PC_Property_List_Value));
 
-            Prop_Value :=
-              Node_Id
-                (P_Items_List
-                   (P_Property_Expression'Access,
-                    No_Node,
-                    T_Comma,
-                    T_Right_Parenthesis,
-                    PC_Property_List_Value));
             if No (Prop_Value) then
                --  error when parsing Property_Expression list, quit
                Skip_Tokens (T_Semicolon);
                return No_Node;
             end if;
 
-            Set_Kind (Prop_Value, K_Property_List_Value);
          end if;
 
       else
@@ -725,23 +752,27 @@ package body Ocarina.FE_AADL.Parser.Properties is
       Scan_Token;
 
       if Token = T_List then
-         Is_A_List    := True;
-         Multiplicity := 1;
+         Is_A_List := True;
 
-         Save_Lexer (Loc);
-         Scan_Token;
+         loop
+            --  Parse nested "list of"
+            Multiplicity := Multiplicity + 1;
 
-         if Token = T_Of then
+            Save_Lexer (Loc);
             Scan_Token;
-            if Token /= T_List then
-               Restore_Lexer (Loc);
+            if Token = T_Of then
+               Scan_Token;
+               if Token /= T_List then
+                  Restore_Lexer (Loc);
+                  exit;
+               end if;
             else
-               Multiplicity := 2; -- XXX shall we iterate? BNF says yes
+               Restore_Lexer (Loc);
+               exit;
             end if;
-         else
-            Restore_Lexer (Loc);
-         end if;
+         end loop;
 
+         --  Current token has be to "list" for P_Multi_Valued_Property
          Property_Definition_Value := P_Multi_Valued_Property;
          Single_Default_Value      := No_Node;
 
@@ -1284,5 +1315,25 @@ package body Ocarina.FE_AADL.Parser.Properties is
 
       return Property_Set;
    end P_Property_Set;
+
+   -------------------------------
+   -- Is_Boolean_Or_Record_Term --
+   -------------------------------
+
+   function Is_Boolean_Or_Record_Term return Boolean is
+      use Lexer;
+      use Ocarina.ME_AADL.Tokens;
+   begin
+      Scan_Token;
+      case Token is
+         when T_Left_Parenthesis =>
+            return Is_Boolean_Or_Record_Term;
+         when T_True | T_False | T_Not
+           | T_Identifier | T_Left_Square_Bracket =>
+            return True;
+         when others =>
+            return False;
+      end case;
+   end Is_Boolean_Or_Record_Term;
 
 end Ocarina.FE_AADL.Parser.Properties;

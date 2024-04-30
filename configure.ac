@@ -1,5 +1,5 @@
 AC_PREREQ(2.57)
-AC_INIT(ocarina, 2017.x)
+AC_INIT(ocarina, m4_esyscmd([git describe --abbrev=7 --dirty --always --tags | tr -d '\n']))
 AC_CONFIG_SRCDIR(src)
 AC_CONFIG_AUX_DIR(support)
 
@@ -334,10 +334,12 @@ AC_ARG_ENABLE(python,
         PYTHON_PRJ=ocarina-python.gpr
         PYTHON_TARGET=python_tree
         PYTHON_RUNTIME=python
+        PYTHON_TEST=yes
 fi],
 [])
 
 AC_SUBST(PYTHON_PRJ)
+AC_SUBST(PYTHON_TEST)
 AC_SUBST(PYTHON_TARGET)
 AC_SUBST(PYTHON_RUNTIME)
 AM_CONDITIONAL(INSTALL_PYTHON,[test x"$PYTHON_RUNTIME" = xpython])
@@ -426,6 +428,7 @@ AC_OUTPUT([
         resources/runtime/cheddar/Makefile
         resources/runtime/lnt/Makefile
         resources/runtime/python/Makefile
+        resources/runtime/python/test/Makefile
         projects/ocarina.gpr
         projects-distrib/ocarina/ocarina_core.gpr
         src/main/Makefile

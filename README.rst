@@ -3,6 +3,20 @@ Ocarina AADL toolset  |docs|
 
 Latest release: |release|
 
+Citable Reference: |zenodo|
+
+::
+
+  @software{ocarina_v2021_1,
+   author       = {OpenAADL},
+   title        = {OpenAADL/ocarina: 2021.1},
+   month        = sep,
+   year         = 2021,
+   version      = {v2021.1},
+   doi          = {10.5281/zenodo.5459517},
+   url          = {https://doi.org/10.5281/zenodo.5459517}
+  }
+
 About:
 ------
 
@@ -61,3 +75,7 @@ Q&A:
 .. |cii| image:: https://bestpractices.coreinfrastructure.org/projects/1019/badge
   :target: https://bestpractices.coreinfrastructure.org/projects/1019
   :alt: CII Best practice
+  
+.. |zenodo| image:: https://zenodo.org/badge/7610156.svg
+   :target: https://zenodo.org/badge/latestdoi/7610156
+  

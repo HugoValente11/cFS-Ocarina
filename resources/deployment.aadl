@@ -48,8 +48,11 @@ property set Deployment is
     AIR_IOP,                  -- AIR IOP partition
     ZYNQZC706_RTEMS,          -- Zynq support, for CoRA-MBAD
     ZYNQ_RTEMS_QEMU,          -- Zynq support, for CoRA-MBAD, for QEMU
+    BRAVE_LARGE_FREERTOS,     -- BRAVE Large support for FreeRTOS
     MSP430_FREERTOS,          -- MSP430 board with FreeRTOS
-    GENERIC_LINUX         -- Linux generic
+    GENERIC_LINUX,            -- Linux generic
+    SAMV71_FREERTOS,          -- SAM V71 with FreeRTOS
+    LEON3_RTEMS_SMP_QDP        -- LEON3 with RTEMS SMP QDP
     );
   --  Supported platforms
 
@@ -94,6 +97,8 @@ property set Deployment is
   Configuration : aadlstring applies to (device, thread);
 
   Config : aadlstring applies to (device);
+
+  Packetizer : aadlstring applies to (device);
 
   ASN1_Module_Name : aadlstring applies to (all);
 

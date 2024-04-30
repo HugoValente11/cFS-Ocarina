@@ -208,6 +208,9 @@ package body Ocarina.Backends.PO_HI_C is
          when Platform_LEON_RTEMS_POSIX =>
             Write_Str ("leon.rtems_posix");
 
+         when Platform_LEON3_RTEMS_SMP_QDP =>
+            Write_Str ("leon3.rtems_smp_qdp");
+
          when Platform_X86_LINUXTASTE =>
             Write_Str ("x86.linuxtaste");
 
@@ -247,6 +250,9 @@ package body Ocarina.Backends.PO_HI_C is
          when Platform_Zynq_QEMU =>
             Write_Str ("zynq_qemu");
 
+         when Platform_BRAVE_Large_FREERTOS =>
+            Write_Str ("brave_large_freertos");
+
          when Platform_AIR_IOP =>
             Write_Str ("air_iop");
 
@@ -255,6 +261,9 @@ package body Ocarina.Backends.PO_HI_C is
 
          when Platform_GENERIC_LINUX =>
             Write_Str ("generic_linux");
+
+         when Platform_SAMV71_FREERTOS =>
+            Write_Str ("samv71_freertos");
 
          when others =>
             Display_Error

@@ -62,6 +62,7 @@ property set AADL_Project is
      Ada05,   -- alias for Ada95
      ASN1,
      Blackbox_Device,
+     Blackbox_C,
      C,
      CPP,     -- C++
      Esterel,
@@ -74,6 +75,7 @@ property set AADL_Project is
      SDL_RTDS,
      RTSJ,    -- Real Time Specification for Java
      SCADE6,  -- alias for Lustre
+     SEDS,
      SDL,     -- alias for SDL_ObjectGeode
      SDL_ObjectGeode,
      SDL_OpenGEODE,

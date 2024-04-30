@@ -65,7 +65,7 @@ package body Ocarina.Instances.Messages is
       pragma Assert (Present (Node));
       Error_Loc (1)  := ATN.Loc (Node);
       Error_Name (1) := Get_Name_Of_Entity (Node);
-      DW ("%references a component type");
+      --  DW ("%references a component type");
    end Display_Entity_Is_A_Component_Type;
 
    ---------------------------------

@@ -7,7 +7,7 @@
 --                                 B o d y                                  --
 --                                                                          --
 --               Copyright (C) 2008-2009 Telecom ParisTech,                 --
---                 2010-2019 ESA & ISAE, 2019-2020 OpenAADL                 --
+--                 2010-2019 ESA & ISAE, 2019-2022 OpenAADL                 --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -511,9 +511,9 @@ package body Ocarina.Backends.PO_HI_C.Activity is
               Make_Variable_Declaration
                 (Defining_Identifier =>
                    Make_Defining_Identifier
-                     (Map_C_Variable_Name (F, Port_Request => True)),
-                 Used_Type => RE (RE_Request_T),
-                 Is_Static => True);
+                     (Map_C_Variable_Name (F, Port_Request => True),
+                     Pointer => True),
+                 Used_Type => RE (RE_Request_T));
             Append_Node_To_List (N, Declarations);
 
             Call_Parameters := New_List (CTN.K_Parameter_List);
@@ -720,7 +720,6 @@ package body Ocarina.Backends.PO_HI_C.Activity is
             Append_Node_To_List (N, WStatements);
 
             F := First_Node (Features (E));
-
             while Present (F) loop
                if Kind (F) = K_Port_Spec_Instance
                  and then Is_Out (F)
@@ -746,10 +745,25 @@ package body Ocarina.Backends.PO_HI_C.Activity is
                         N :=
                           Make_Variable_Declaration
                             (Make_Defining_Identifier
-                               (Map_C_Variable_Name (F, Port_Request => True)),
-                             RE (RE_Request_T),
-                             Is_Static => True);
+                               (Map_C_Variable_Name (F, Port_Request => True),
+                                Pointer => True),
+                             RE (RE_Request_T));
                         Append_Node_To_List (N, Declarations);
+
+                        N := CTU.Make_Call_Profile
+                              (RE (RE_Get_Request),
+                              Make_List_Id
+                                 (Make_Defining_Identifier
+                                    (Map_C_Enumerator_Name (F))));
+                        N :=
+                           Make_Assignment_Statement
+                              (Variable_Identifier =>
+                                 Make_Defining_Identifier
+                                 (Map_C_Variable_Name
+                                 (F,
+                                 Port_Request => True)),
+                              Expression => N);
+                        Append_Node_To_List (N, WStatements);
 
                         L :=
                           Make_Member_Designator
@@ -769,7 +783,8 @@ package body Ocarina.Backends.PO_HI_C.Activity is
                                Make_Defining_Identifier
                                  (Map_C_Variable_Name
                                     (F,
-                                     Port_Request => True)));
+                                     Port_Request => True)),
+                           Is_Pointer => True);
                         R :=
                           Make_Defining_Identifier
                             (Map_C_Variable_Name
@@ -821,7 +836,8 @@ package body Ocarina.Backends.PO_HI_C.Activity is
                                     Make_Defining_Identifier
                                       (Map_C_Variable_Name
                                          (F,
-                                          Port_Request => True))),
+                                          Port_Request => True)),
+                                 Is_Pointer => True),
                              Operator   => Op_Equal,
                              Right_Expr =>
                                Make_Defining_Identifier
@@ -840,11 +856,10 @@ package body Ocarina.Backends.PO_HI_C.Activity is
                         Append_Node_To_List (N, Call_Parameters);
 
                         N :=
-                          Make_Variable_Address
-                            (Make_Defining_Identifier
-                               (Map_C_Variable_Name
-                                  (F,
-                                   Port_Request => True)));
+                          Make_Defining_Identifier
+                             (Map_C_Variable_Name
+                              (F,
+                               Port_Request => True));
                         Append_Node_To_List (N, Call_Parameters);
 
                         N :=
@@ -1076,6 +1091,55 @@ package body Ocarina.Backends.PO_HI_C.Activity is
             end loop;
          end Make_Fetch_In_Ports;
 
+         ---------------------------
+         -- Make_Release_Requests --
+         ---------------------------
+
+         procedure Make_Release_Requests is
+            F : Node_Id;
+         begin
+            F := First_Node (Features (E));
+
+            while Present (F) loop
+               if Kind (F) = K_Port_Spec_Instance
+                 and then Is_In (F)
+                 and then AAN.Is_Event (F)
+               then
+
+                  Call_Parameters := New_List (CTN.K_Parameter_List);
+
+                  Append_Node_To_List
+                     (Make_Defining_Identifier
+                        (Map_C_Variable_Name
+                           (F,
+                            Port_Request => True)),
+                         Call_Parameters);
+
+                  N :=
+                    Make_Call_Profile
+                      (RE (RE_Free_Request),
+                       Call_Parameters);
+                  Append_Node_To_List (N, WStatements);
+
+                  N :=
+                    Make_Defining_Identifier
+                      (CONST (C_Null),
+                       C_Conversion => False);
+
+                  N :=
+                     Make_Assignment_Statement
+                        (Variable_Identifier =>
+                         Make_Defining_Identifier
+                         (Map_C_Variable_Name
+                         (F, Port_Request => True)),
+                         Expression => N);
+                  Append_Node_To_List (N, WStatements);
+               end if;
+
+               F := Next_Node (F);
+            end loop;
+         end Make_Release_Requests;
+
          ------------------------
          -- Make_Call_Sequence --
          ------------------------
@@ -1126,30 +1190,8 @@ package body Ocarina.Backends.PO_HI_C.Activity is
                   --  Declare local data variable if the port is a
                   --  data port.
 
-                  if AAN.Is_Data (F) then
-                     N := Make_Get_Valid_Value (F);
-                     Append_Node_To_List (N, Switch_Statements);
-                  end if;
-
-                  if Is_Event (F) and then not AAN.Is_Data (F) then
-                     Call_Parameters := New_List (CTN.K_Parameter_List);
-
-                     Append_Node_To_List
-                       (Make_Defining_Identifier (Map_C_Enumerator_Name (S)),
-                        Call_Parameters);
-
-                     Append_Node_To_List
-                       (Make_Defining_Identifier
-                          (Map_C_Enumerator_Name (F, Local_Port => True)),
-                        Call_Parameters);
-
-                     N :=
-                       Make_Call_Profile
-                         (RE (RE_Gqueue_Next_Value),
-                          Call_Parameters);
-
-                     Append_Node_To_List (N, Switch_Statements);
-                  end if;
+                  N := Make_Get_Valid_Value (F);
+                  Append_Node_To_List (N, Switch_Statements);
 
                   Call_Parameters := New_List (CTN.K_Parameter_List);
                   N := Make_Defining_Identifier (Map_C_Enumerator_Name (S));
@@ -1158,6 +1200,7 @@ package body Ocarina.Backends.PO_HI_C.Activity is
                   declare
                      Parameter_List : constant List_Id :=
                        New_List (CTN.K_List_Id);
+                     D : constant Node_Id := Corresponding_Instance (F);
                   begin
                      N :=
                        Make_Parameter_Specification
@@ -1184,17 +1227,28 @@ package body Ocarina.Backends.PO_HI_C.Activity is
                                Make_Defining_Identifier
                                  (Map_C_Variable_Name
                                     (F,
-                                     Port_Request => True)));
+                                     Port_Request => True)),
+                                     Is_Pointer => True);
 
-                        Append_Node_To_List (N, Call_Parameters);
+                        if By_Reference_Type (D) then
+                           Append_Node_To_List (Make_Variable_Address (N),
+                                                Call_Parameters);
+                        else
+                           Append_Node_To_List (N, Call_Parameters);
+                        end if;
 
-                        N :=
-                          Map_C_Data_Type_Designator
-                            (Corresponding_Instance (F));
-                        N :=
-                          Make_Parameter_Specification
-                            (Map_C_Defining_Identifier (F),
-                             N);
+                        N := Map_C_Data_Type_Designator (D);
+
+                        if By_Reference_Type (D) then
+                           N :=
+                              Make_Parameter_Specification
+                                 (Map_C_Defining_Identifier (F),
+                                  CTU.Make_Pointer_Type (N));
+                        else
+                           N :=
+                              Make_Parameter_Specification
+                                 (Map_C_Defining_Identifier (F), N);
+                        end if;
                         Append_Node_To_List (N, Parameter_List);
                      end if;
 
@@ -1594,6 +1648,10 @@ package body Ocarina.Backends.PO_HI_C.Activity is
                   Make_Send_Out_Ports (WStatements);
                end if;
 
+               if Has_In_Event_Ports (E) then
+                  Make_Release_Requests;
+               end if;
+
             when Thread_With_Compute_Entrypoint =>
                --  Call the compute entrypoint. The code of the
                --  compute entry point will include the setting of
@@ -1610,6 +1668,12 @@ package body Ocarina.Backends.PO_HI_C.Activity is
                if Has_Out_Ports (E) then
                   Make_Send_Out_Ports (WStatements);
                end if;
+               --  It is assumed the implementation is managing the request
+               --  lifecycle, hence there is no need to free requests
+
+               --  if Has_In_Event_Ports (E) then
+               --   Make_Release_Requests;
+               --  end if;
 
             when Thread_With_Port_Compute_Entrypoint =>
                --  Call the compute entrypoints of the triggeing
@@ -1626,6 +1690,10 @@ package body Ocarina.Backends.PO_HI_C.Activity is
 
                if Has_Out_Ports (E) then
                   Make_Send_Out_Ports (WStatements);
+               end if;
+
+               if Has_In_Event_Ports (E) then
+                  Make_Release_Requests;
                end if;
 
             when Thread_With_Behavior_Specification =>
@@ -2269,14 +2337,14 @@ package body Ocarina.Backends.PO_HI_C.Activity is
                         CTN.Values (N_Dest_Values));
 
                      Append_Node_To_List (N, CTN.Values (Fifo_Size_Values));
+
                   else
                      if AAN.Is_Data (F) and then not Is_Event (F) then
-
                         Has_Local_Deliver := True;
                         N                 := RE (RE_Gqueue_Fifo_Indata);
                         Queue_Size        := 0;
-                     else
 
+                     else
                         Has_Local_Deliver := True;
 
                         Queue_Size := Get_Queue_Size (F);
@@ -2286,7 +2354,11 @@ package body Ocarina.Backends.PO_HI_C.Activity is
 
                            N :=
                              Make_Literal
-                               (CV.New_Int_Value (Default_Queue_Size, 0, 10));
+                               (CV.New_Int_Value
+                                  (Unsigned_Long_Long (Queue_Size),
+                                   0,
+                                   10));
+
                         elsif Queue_Size = 0 then
                            --  0 length queues are not supported
 
@@ -2432,7 +2504,8 @@ package body Ocarina.Backends.PO_HI_C.Activity is
                    Make_Array_Declaration
                      (Defining_Identifier =>
                         Make_Defining_Identifier
-                          (Map_C_Variable_Name (S, Port_Recent => True)),
+                          (Map_C_Variable_Name (S, Port_Recent => True),
+                           Pointer => True),
                       Array_Size =>
                         Make_Defining_Identifier
                           (Map_C_Define_Name (S, Nb_Ports => True))),
@@ -2445,7 +2518,8 @@ package body Ocarina.Backends.PO_HI_C.Activity is
                    Make_Array_Declaration
                      (Defining_Identifier =>
                         Make_Defining_Identifier
-                          (Map_C_Variable_Name (S, Port_Queue => True)),
+                          (Map_C_Variable_Name (S, Port_Queue => True),
+                          Pointer => True),
                       Array_Size =>
                         Make_Literal
                           (CV.New_Int_Value (Fifo_Size, 0, 10))),

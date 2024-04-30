@@ -7,7 +7,7 @@
 --                                 S p e c                                  --
 --                                                                          --
 --               Copyright (C) 2008-2009 Telecom ParisTech,                 --
---                 2010-2019 ESA & ISAE, 2019-2020 OpenAADL                 --
+--                 2010-2019 ESA & ISAE, 2019-2022 OpenAADL                 --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -94,6 +94,8 @@ package Ocarina.Backends.PO_HI_C.Runtime is
       RE_Unmarshall_Float32,             -- __po_hi_unmarshall_float32
       RE_Marshall_Float64,               -- __po_hi_marshall_float64
       RE_Unmarshall_Float64,             -- __po_hi_unmarshall_float64
+      RE_New_Request_Payload,            -- __po_hi_new_request_payload
+      RE_Free_Request_Payload,           -- __po_hi_free_request_payload
       RE_Marshall_Request,               -- __po_hi_marshall_request
       RE_Unmarshall_Request,             -- __po_hi_unmarshall_request
       RE_Marshall_Asn1_Request,          -- __po_hi_marshall_asn1_request
@@ -122,6 +124,8 @@ package Ocarina.Backends.PO_HI_C.Runtime is
       RE_Unmarshall_Array,               -- __po_hi_unmarshall_array
       RE_Send_Output,                    -- __po_hi_send_output
       RE_Get_Entity_From_Global_Port,    -- __po_hi_get_entity_from_global_port
+      RE_Get_Request,                    -- __po_hi_get_request
+      RE_Free_Request,                   -- __po_hi_free_request
       RE_Gqueue_Init,                    -- __po_hi_gqueue_init
       RE_Gqueue_Store_In,                -- __po_hi_gqueue_store_in
       RE_Gqueue_Store_Out,               -- __po_hi_gqueue_store_out
@@ -231,6 +235,7 @@ package Ocarina.Backends.PO_HI_C.Runtime is
       RE_Int64_T,                        --  __po_hi_int64_t
       RE_Float32_T,                      --  __po_hi_float32_t
       RE_Float64_T,                      --  __po_hi_float64_t
+      RE_Void,                           --  void
       RE_Msg_T,                          --  __po_hi_msg_t
       RE_Port_T,                         --  __po_hi_port_t
       RE_Protocol_Conf_T,                --  __po_hi_protocol_conf_t
@@ -341,6 +346,8 @@ package Ocarina.Backends.PO_HI_C.Runtime is
       RE_LUA_Get_Boolean                => RH_PO_HI_Lua,
       RE_LUA_Get_Number                 => RH_PO_HI_Lua,
       RE_LUA_Get_String                 => RH_PO_HI_Lua,
+      RE_New_Request_Payload            => RH_Request,
+      RE_Free_Request_Payload           => RH_Request,
       RE_Marshall_Request               => RH_Marshallers,
       RE_Unmarshall_Request             => RH_Marshallers,
       RE_Marshall_Asn1_Request          => RH_Marshallers,
@@ -365,6 +372,8 @@ package Ocarina.Backends.PO_HI_C.Runtime is
       RE_Gqueue_Store_In                => RH_PO_HI_Gqueue,
       RE_Gqueue_Store_Out               => RH_PO_HI_Gqueue,
       RE_Gqueue_Send_Output             => RH_PO_HI_Gqueue,
+      RE_Get_Request                    => RH_PO_HI_Gqueue,
+      RE_Free_Request                   => RH_PO_HI_Gqueue,
       RE_Gqueue_Init                    => RH_PO_HI_Gqueue,
       RE_Gqueue_Get_Count               => RH_PO_HI_Gqueue,
       RE_Gqueue_Get_Value               => RH_PO_HI_Gqueue,
@@ -413,6 +422,7 @@ package Ocarina.Backends.PO_HI_C.Runtime is
       RE_Int64_T              => RH_PO_HI_Types,
       RE_Float32_T            => RH_PO_HI_Types,
       RE_Float64_T            => RH_PO_HI_Types,
+      RE_Void                 => RH_PO_HI_Types,
       RE_Node_T               => RH_Deployment,
       RE_Operation_T          => RH_Request,
       RE_Protected_Protocol_T => RH_PO_HI_Protected,

@@ -277,6 +277,7 @@ package body Ocarina.Backends.Properties is
    Language_RTSJ_Name            : Name_Id;
    Language_Scade_Name           : Name_Id;
    Language_SCADE6_Name          : Name_Id;
+   Language_SEDS_Name            : Name_Id;
    Language_SDL_Name             : Name_Id;
    Language_SDL_ObjectGeode_Name : Name_Id;
    Language_SDL_RTDS_Name        : Name_Id;
@@ -324,6 +325,7 @@ package body Ocarina.Backends.Properties is
    Platform_LINUX64_Name                : Name_Id;
    Platform_LEON_RTEMS_Name             : Name_Id;
    Platform_LEON_RTEMS_POSIX_Name       : Name_Id;
+   Platform_LEON3_RTEMS_SMP_QDP_Name    : Name_Id;
    Platform_X86_LINUXTASTE_Name         : Name_Id;
    Platform_LEON_GNAT_Name              : Name_Id;
    Platform_LEON_ORK_Name               : Name_Id;
@@ -337,8 +339,10 @@ package body Ocarina.Backends.Properties is
    Platform_AIR_Name                    : Name_Id;
    Platform_ZynqZC706_RTEMS_Name        : Name_Id;
    Platform_Zynq_RTEMS_QEMU_Name        : Name_Id;
+   Platform_BRAVE_Large_FREERTOS_Name   : Name_Id;
    Platform_MSP430_FREERTOS_Name        : Name_Id;
    Platform_GENERIC_LINUX_Name          : Name_Id;
+   Platform_SAMV71_FREERTOS_Name        : Name_Id;
    Platform_AIR_IOP_Name                : Name_Id;
 
    Transport_BSD_Sockets_Name : Name_Id;
@@ -1185,6 +1189,10 @@ package body Ocarina.Backends.Properties is
       elsif Source_L = Language_Esterel_Name then
          return Language_Esterel;
 
+      elsif Source_L = Language_SEDS_Name
+      then
+         return Language_SEDS;
+
       elsif Source_L = Language_SDL_Name
         or else Source_L = Language_SDL_ObjectGeode_Name
         or else Source_L = Language_SDL_OpenGEODE_Name
@@ -1337,6 +1345,7 @@ package body Ocarina.Backends.Properties is
 
          when Language_SDL        |
            Language_SDL_RTDS      |
+           Language_SEDS          |
            Language_System_C      |
            Language_SDL_OpenGEODE |
            Language_VDM           |
@@ -1546,6 +1555,14 @@ package body Ocarina.Backends.Properties is
 
    function Get_Source_Text (E : Node_Id) return Name_Array is
    begin
+      --  Ensure E has the proper kind; it is safe to ignore this case, e.g.
+      --  when E is computed from Get_Compute_Entrypoint and the model has a
+      --  Compute_Entrypoint_Source_Text set
+
+      if Present (E) and then Kind (E) = K_Property_Association_Instance then
+         return Empty_Name_Array;
+      end if;
+
       return Check_And_Get_Property (E, Source_Text);
    end Get_Source_Text;
 
@@ -2509,6 +2526,8 @@ package body Ocarina.Backends.Properties is
             return Platform_Native_Compcert;
          elsif P_Name = Platform_LEON_RTEMS_POSIX_Name then
             return Platform_LEON_RTEMS_POSIX;
+         elsif P_Name = Platform_LEON3_RTEMS_SMP_QDP_Name then
+            return Platform_LEON3_RTEMS_SMP_QDP;
          elsif P_Name = Platform_LEON_RTEMS_Name then
             return Platform_LEON_RTEMS;
          elsif P_Name = Platform_X86_LINUXTASTE_Name then
@@ -2549,10 +2568,14 @@ package body Ocarina.Backends.Properties is
             return Platform_ZynqZC706;
          elsif P_Name = Platform_Zynq_RTEMS_QEMU_Name then
             return Platform_Zynq_QEMU;
+         elsif P_Name = Platform_BRAVE_Large_FREERTOS_Name then
+            return Platform_BRAVE_Large_FREERTOS;
          elsif P_Name = Platform_MSP430_FREERTOS_Name then
             return Platform_MSP430_FREERTOS;
          elsif P_Name = Platform_GENERIC_LINUX_Name then
             return Platform_GENERIC_LINUX;
+         elsif P_Name = Platform_SAMV71_FREERTOS_Name then
+            return Platform_SAMV71_FREERTOS;
          elsif P_Name = Platform_AIR_IOP_Name then
             return Platform_AIR_IOP;
          else
@@ -3068,6 +3091,7 @@ package body Ocarina.Backends.Properties is
       Language_LUA_Name             := Get_String_Name ("lua");
       Language_Rhapsody_Name        := Get_String_Name ("rhapsody");
       Language_SCADE6_Name          := Get_String_Name ("scade6");
+      Language_SEDS_Name            := Get_String_Name ("seds");
       Language_SDL_Name             := Get_String_Name ("sdl");
       Language_SDL_OpenGEODE_Name   := Get_String_Name ("sdl_opengeode");
       Language_SDL_ObjectGeode_Name := Get_String_Name ("sdl_objectgeode");
@@ -3108,25 +3132,30 @@ package body Ocarina.Backends.Properties is
         Get_String_Name ("linux32_xenomai_native");
       Platform_LINUX32_Xenomai_Posix_Name :=
         Get_String_Name ("linux32_xenomai_posix");
-      Platform_LINUX64_Name          := Get_String_Name ("linux64");
-      Platform_X86_LINUXTASTE_Name   := Get_String_Name ("x86_linuxtaste");
-      Platform_LEON_RTEMS_Name       := Get_String_Name ("leon_rtems");
-      Platform_LEON_RTEMS_POSIX_Name := Get_String_Name ("leon_rtems_posix");
-      Platform_LEON_GNAT_Name        := Get_String_Name ("leon_gnat");
-      Platform_LEON_ORK_Name         := Get_String_Name ("leon_ork");
-      Platform_LEON3_SCOC3_Name      := Get_String_Name ("leon3_scoc3");
-      Platform_LEON3_XM3_Name        := Get_String_Name ("leon3_xm3");
-      Platform_LEON3_Xtratum_Name    := Get_String_Name ("leon3_xtratum");
-      Platform_ERC32_ORK_Name        := Get_String_Name ("erc32_ork");
-      Platform_MARTE_OS_Name         := Get_String_Name ("marte_os");
-      Platform_Vxworks_Name          := Get_String_Name ("vxworks");
-      Platform_GNAT_Runtime_Name     := Get_String_Name ("gnat_runtime");
-      Platform_AIR_Name              := Get_String_Name ("air");
-      Platform_ZynqZC706_RTEMS_Name  := Get_String_Name ("zynqzc706_rtems");
-      Platform_Zynq_RTEMS_QEMU_Name  := Get_String_Name ("zynq_rtems_qemu");
-      Platform_MSP430_FREERTOS_Name  := Get_String_Name ("msp430_freertos");
-      Platform_GENERIC_LINUX_Name    := Get_String_Name ("generic_linux");
-      Platform_AIR_IOP_Name          := Get_String_Name ("air_iop");
+      Platform_LINUX64_Name            := Get_String_Name ("linux64");
+      Platform_X86_LINUXTASTE_Name     := Get_String_Name ("x86_linuxtaste");
+      Platform_LEON_RTEMS_Name         := Get_String_Name ("leon_rtems");
+      Platform_LEON_RTEMS_POSIX_Name   := Get_String_Name ("leon_rtems_posix");
+      Platform_LEON3_RTEMS_SMP_QDP_Name :=
+        Get_String_Name ("leon3_rtems_smp_qdp");
+      Platform_LEON_GNAT_Name          := Get_String_Name ("leon_gnat");
+      Platform_LEON_ORK_Name           := Get_String_Name ("leon_ork");
+      Platform_LEON3_SCOC3_Name        := Get_String_Name ("leon3_scoc3");
+      Platform_LEON3_XM3_Name          := Get_String_Name ("leon3_xm3");
+      Platform_LEON3_Xtratum_Name      := Get_String_Name ("leon3_xtratum");
+      Platform_ERC32_ORK_Name          := Get_String_Name ("erc32_ork");
+      Platform_MARTE_OS_Name           := Get_String_Name ("marte_os");
+      Platform_Vxworks_Name            := Get_String_Name ("vxworks");
+      Platform_GNAT_Runtime_Name       := Get_String_Name ("gnat_runtime");
+      Platform_AIR_Name                := Get_String_Name ("air");
+      Platform_ZynqZC706_RTEMS_Name    := Get_String_Name ("zynqzc706_rtems");
+      Platform_Zynq_RTEMS_QEMU_Name    := Get_String_Name ("zynq_rtems_qemu");
+      Platform_BRAVE_Large_FREERTOS_Name :=
+          Get_String_Name ("brave_large_freertos");
+      Platform_MSP430_FREERTOS_Name    := Get_String_Name ("msp430_freertos");
+      Platform_GENERIC_LINUX_Name      := Get_String_Name ("generic_linux");
+      Platform_SAMV71_FREERTOS_Name    := Get_String_Name ("samv71_freertos");
+      Platform_AIR_IOP_Name            := Get_String_Name ("air_iop");
 
       Transport_BSD_Sockets_Name := Get_String_Name ("bsd_sockets");
       Transport_SpaceWire_Name   := Get_String_Name ("spacewire");

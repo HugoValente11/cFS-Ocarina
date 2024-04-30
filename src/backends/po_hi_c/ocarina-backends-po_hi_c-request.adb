@@ -7,7 +7,7 @@
 --                                 B o d y                                  --
 --                                                                          --
 --               Copyright (C) 2008-2009 Telecom ParisTech,                 --
---                 2010-2019 ESA & ISAE, 2019-2020 OpenAADL                 --
+--                 2010-2019 ESA & ISAE, 2019-2022 OpenAADL                 --
 --                                                                          --
 -- Ocarina  is free software; you can redistribute it and/or modify under   --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -59,6 +59,35 @@ package body Ocarina.Backends.PO_HI_C.Request is
    package CTN renames Ocarina.Backends.C_Tree.Nodes;
    package CV renames Ocarina.Backends.C_Values;
 
+   --  Request_Declared is true iff a non-empty request type is
+   --  required for this application
+   Request_Declared : Boolean;
+
+   Request_Payload_Allocator_Alternatives : List_Id;
+   Request_Payload_Allocator_Default_Added : Boolean := False;
+
+   function New_Request_Payload_Spec return Node_Id;
+
+   ------------------------------
+   -- New_Request_Payload_Spec --
+   ------------------------------
+
+   function New_Request_Payload_Spec return Node_Id is
+      N          : Node_Id;
+      Parameters : constant List_Id := New_List (CTN.K_Parameter_List);
+   begin
+      N := Make_Parameter_Specification
+          (Defining_Identifier => Make_Defining_Identifier (MN (M_Port)),
+           Parameter_Type      => RE (RE_Port_T));
+      Append_Node_To_List (N, Parameters);
+
+      N := Make_Function_Specification
+          (Defining_Identifier => RE (RE_New_Request_Payload),
+           Parameters  => Parameters,
+           Return_Type => Make_Pointer_Type (RE (RE_Request_T)));
+      return N;
+   end New_Request_Payload_Spec;
+
    -----------------
    -- Header_File --
    -----------------
@@ -80,7 +109,6 @@ package body Ocarina.Backends.PO_HI_C.Request is
       Request_Union_List   : List_Id;
       Ports_Names_Array    : Node_Id;
       Operation_Identifier : Unsigned_Long_Long;
-      Request_Declared     : Boolean;
 
       -----------
       -- Visit --
@@ -240,7 +268,6 @@ package body Ocarina.Backends.PO_HI_C.Request is
          end if;
 
          if Request_Declared then
-
             --  Create the enumeration type for all the operations of
             --  the distributed application.
 
@@ -281,6 +308,10 @@ package body Ocarina.Backends.PO_HI_C.Request is
             Append_Node_To_List (N, CTN.Declarations (Current_File));
 
             Bind_AADL_To_Request (Identifier (E), Ports_Names_Array);
+
+            N := New_Request_Payload_Spec;
+            Append_Node_To_List (N, CTN.Declarations (Current_File));
+
          else
             N :=
               Make_Full_Type_Declaration
@@ -305,6 +336,8 @@ package body Ocarina.Backends.PO_HI_C.Request is
          Push_Entity (C_Root);
 
          Request_Union_List := New_List (CTN.K_Enumeration_Literals);
+         Request_Payload_Allocator_Alternatives
+            := New_List (CTN.K_Alternatives_List);
 
          Ports_Names_Array := Make_Array_Values;
          --  Visit all the subcomponents of the system
@@ -388,6 +421,44 @@ package body Ocarina.Backends.PO_HI_C.Request is
 
                         Bind_AADL_To_Request_Type (Identifier (F), N);
                      end if;
+
+                     --  Data elements for the request payload allocator
+
+                     declare
+                        Switch_Statements : constant List_Id
+                           := New_List (CTN.K_Statement_List);
+                        Switch_Labels : constant List_Id
+                           := New_List (CTN.K_Label_List);
+
+                     begin
+                        N := Make_Expression
+                           (Left_Expr =>
+                              Make_Call_Profile
+                           (Make_Defining_Identifier (FN (F_Sizeof)),
+                           Make_List_Id (RE (RE_Port_T))),
+                           Operator   => Op_Plus,
+                           Right_Expr =>
+                              Make_Call_Profile
+                           (Make_Defining_Identifier (FN (F_Sizeof)),
+                           Make_List_Id (V)));
+
+                        N := Make_Call_Profile
+                           (Make_Defining_Identifier (FN (F_Malloc)),
+                            Make_List_Id (N));
+                        N := Make_Return_Statement (N);
+                        Append_Node_To_List (N, Switch_Statements);
+
+                        Append_Node_To_List
+                           (Make_Defining_Identifier
+                              (Map_C_Enumerator_Name (F)),
+                               Switch_Labels);
+
+                        N := Make_Switch_Alternative
+                           (Switch_Labels, Switch_Statements);
+                        Append_Node_To_List
+                           (N, Request_Payload_Allocator_Alternatives);
+                     end;
+
                   end if;
                end if;
                F := Next_Node (F);
@@ -529,8 +600,7 @@ package body Ocarina.Backends.PO_HI_C.Request is
          if Present (Backend_Node (Identifier (E)))
            and then Present (CTN.Request_Node (Backend_Node (Identifier (E))))
          then
-            N :=
-              Make_Expression
+            N := Make_Expression
                 (Left_Expr =>
                    Make_Variable_Declaration
                      (Defining_Identifier =>
@@ -547,6 +617,49 @@ package body Ocarina.Backends.PO_HI_C.Request is
 
             Append_Node_To_List (N, CTN.Declarations (Current_File));
          end if;
+
+         declare
+            --  Make the global __po_hi_new_request() function
+
+            Declarations : constant List_Id
+               := New_List (CTN.K_Declaration_List);
+            Statements : constant List_Id := New_List (CTN.K_Statement_List);
+
+         begin
+            if not Is_Empty (Request_Payload_Allocator_Alternatives) then
+               if not Request_Payload_Allocator_Default_Added  then
+                  --  Add default case
+                  N := Make_Call_Profile
+                     (Make_Defining_Identifier (FN (F_Malloc)),
+                     Make_List_Id
+                        (Make_Call_Profile
+                           (Make_Defining_Identifier (FN (F_Sizeof)),
+                           Make_List_Id (RE (RE_Request_T)))));
+                  N := Make_Return_Statement (N);
+                  N := Make_Switch_Alternative (No_List, Make_List_Id (N));
+                  Append_Node_To_List
+                     (N, Request_Payload_Allocator_Alternatives);
+                  Request_Payload_Allocator_Default_Added := True;
+               end if;
+
+               N := Make_Switch_Statement
+                  (Expression => Make_Defining_Identifier (MN (M_Port)),
+                   Alternatives => Request_Payload_Allocator_Alternatives);
+
+            else
+               N := Message_Comment ("No alternative was declared");
+            end if;
+
+            if Request_Declared then
+               Append_Node_To_List (N, Statements);
+               Add_Include (RH (RH_Types));
+               N := Make_Function_Implementation
+                  (New_Request_Payload_Spec,
+                  Declarations,
+                  Statements);
+               Append_Node_To_List (N, CTN.Declarations (Current_File));
+            end if;
+         end;
 
          Reset_Handlings;
 

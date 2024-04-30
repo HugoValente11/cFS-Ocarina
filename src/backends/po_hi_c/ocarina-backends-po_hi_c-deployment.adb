@@ -2412,6 +2412,7 @@ package body Ocarina.Backends.PO_HI_C.Deployment is
                     Platform_RPI                    |
                     Platform_MSP430_FREERTOS        |
                     Platform_GENERIC_LINUX          |
+                    Platform_SAMV71_FREERTOS        |
                     Platform_LINUX32_XENOMAI_NATIVE |
                     Platform_Native_Compcert        |
                     Platform_LINUX32_XENOMAI_POSIX  |
@@ -2419,6 +2420,7 @@ package body Ocarina.Backends.PO_HI_C.Deployment is
                     Platform_LINUX_DLL              |
                     Platform_LINUX64                |
                     Platform_LINUX32                |
+                    Platform_BRAVE_Large_FREERTOS   |
                     Platform_ZynqZC706              |
                     Platform_Zynq_QEMU                =>
                      Append_Node_To_List
@@ -2429,6 +2431,7 @@ package body Ocarina.Backends.PO_HI_C.Deployment is
                     Platform_AIR_IOP             |
                     Platform_LEON_RTEMS          |
                     Platform_LEON_RTEMS_POSIX    |
+                    Platform_LEON3_RTEMS_SMP_QDP |
                     Platform_LEON_ORK            |
                     Platform_LEON3_XM3           =>
                      Append_Node_To_List
