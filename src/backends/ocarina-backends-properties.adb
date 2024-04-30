@@ -344,6 +344,7 @@ package body Ocarina.Backends.Properties is
    Platform_GENERIC_LINUX_Name          : Name_Id;
    Platform_SAMV71_FREERTOS_Name        : Name_Id;
    Platform_AIR_IOP_Name                : Name_Id;
+   Platform_CFS_Name               : Name_Id;
 
    Transport_BSD_Sockets_Name : Name_Id;
    Transport_SpaceWire_Name   : Name_Id;
@@ -2578,6 +2579,8 @@ package body Ocarina.Backends.Properties is
             return Platform_SAMV71_FREERTOS;
          elsif P_Name = Platform_AIR_IOP_Name then
             return Platform_AIR_IOP;
+         elsif P_Name = Platform_CFS_Name then
+            return Platform_CFS;
          else
             return Platform_None;
          end if;
@@ -3156,6 +3159,7 @@ package body Ocarina.Backends.Properties is
       Platform_GENERIC_LINUX_Name      := Get_String_Name ("generic_linux");
       Platform_SAMV71_FREERTOS_Name    := Get_String_Name ("samv71_freertos");
       Platform_AIR_IOP_Name            := Get_String_Name ("air_iop");
+      Platform_CFS_Name            := Get_String_Name ("cfs");
 
       Transport_BSD_Sockets_Name := Get_String_Name ("bsd_sockets");
       Transport_SpaceWire_Name   := Get_String_Name ("spacewire");

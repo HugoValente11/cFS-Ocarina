@@ -2420,6 +2420,7 @@ package body Ocarina.Backends.PO_HI_C.Deployment is
                     Platform_LINUX_DLL              |
                     Platform_LINUX64                |
                     Platform_LINUX32                |
+                    Platform_CFS                |
                     Platform_BRAVE_Large_FREERTOS   |
                     Platform_ZynqZC706              |
                     Platform_Zynq_QEMU                =>

@@ -45,6 +45,7 @@ property set Deployment is
     FREERTOS,                 -- FREERTOS
     MSP430_FREERTOS,          -- MSP430 board with FreeRTOS
     AIR,                      -- AIR Hypervisor, by GMV
+    CFS,                      -- cFS
     AIR_IOP,                  -- AIR IOP partition
     ZYNQZC706_RTEMS,          -- Zynq support, for CoRA-MBAD
     ZYNQ_RTEMS_QEMU,          -- Zynq support, for CoRA-MBAD, for QEMU

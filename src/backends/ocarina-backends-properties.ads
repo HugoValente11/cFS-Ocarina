@@ -584,6 +584,7 @@ package Ocarina.Backends.Properties is
       Platform_GENERIC_LINUX,
       Platform_SAMV71_FREERTOS,
       Platform_AIR_IOP,
+      Platform_CFS,
       Platform_None); --  Unspecified
 
    function Get_Execution_Platform
